@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 120" width="100%" height="100%">
+  <defs>
+    <linearGradient id="wmEmerald" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#e2f5ec"/>
+    </linearGradient>
+
+    <linearGradient id="routeGradX1" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#059669"/>
+      <stop offset="60%" stop-color="#10b981"/>
+      <stop offset="100%" stop-color="#34d399"/>
+    </linearGradient>
+
+    <linearGradient id="routeGradX2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#34d399"/>
+      <stop offset="50%" stop-color="#6ee7b7"/>
+      <stop offset="100%" stop-color="#a7f3d0"/>
+    </linearGradient>
+
+    <filter id="xGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  <!-- NEXTRA Wordmark Vector Glyphs -->
+  <g fill="url(#wmEmerald)">
+    <!-- N -->
+    <path d="M 20 14 L 35 14 L 35 50 L 67 14 L 83 14 L 83 70 L 68 70 L 68 34 L 36 70 L 20 70 Z"/>
+
+    <!-- E -->
+    <path d="M 103 14 L 149 14 L 149 27 L 119 27 L 119 36 L 145 36 L 145 49 L 119 49 L 119 57 L 150 57 L 150 70 L 103 70 Z"/>
+
+    <!-- T -->
+    <path d="M 252 14 L 306 14 L 306 27 L 287 27 L 287 70 L 271 70 L 271 27 L 252 27 Z"/>
+
+    <!-- R -->
+    <path d="M 324 14 L 358 14 C 371 14 379 21 379 32 C 379 40 373 47 363 49 L 382 70 L 364 70 L 347 51 L 340 51 L 340 70 L 324 70 Z M 340 26 L 340 40 L 356 40 C 361 40 364 37 364 33 C 364 29 361 26 356 26 Z"/>
+
+    <!-- A -->
+    <path d="M 409 14 L 426 14 L 452 70 L 436 70 L 430 56 L 405 56 L 399 70 L 383 70 Z M 417 28 L 410 44 L 425 44 Z"/>
+  </g>
+
+  <!-- THE HEROIC ROUTE "X" (Intelligent Cross-Corridor Mobility) -->
+  <g>
+    <!-- Expressway Lane 1 (South-West to North-East Highway) -->
+    <path d="M 166 70 L 232 14" stroke="url(#routeGradX1)" stroke-width="15" stroke-linecap="round"/>
+    
+    <!-- Expressway Lane 2 (North-West to South-East Bridge Crossing) -->
+    <path d="M 166 14 L 232 70" stroke="url(#routeGradX2)" stroke-width="15" stroke-linecap="round" opacity="0.95"/>
+
+    <!-- Route Center Markings (AI Smart Navigation Vectors) -->
+    <path d="M 170 66 L 228 18" stroke="#06221b" stroke-width="3" stroke-dasharray="7 5" stroke-linecap="round"/>
+    <path d="M 170 18 L 228 66" stroke="#ffffff" stroke-width="3" stroke-dasharray="7 5" stroke-linecap="round" opacity="0.9"/>
+
+    <!-- Intelligent Crossroads Transit Pulse Node -->
+    <circle cx="199" cy="42" r="8" fill="#061a14" stroke="#6ee7b7" stroke-width="2.5"/>
+    <circle cx="199" cy="42" r="3.5" fill="#34d399" filter="url(#xGlow)"/>
+  </g>
+
+  <!-- Tagline underneath with regional identity & precision spacing -->
+  <text x="20" y="98"
+        font-family="'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+        font-size="11.5"
+        font-weight="700"
+        letter-spacing="2.2"
+        fill="#34d399">
+    NE REGION X-INTELLIGENT TRANSPORT &amp; ROUTING ASSISTANT
+  </text>
+
+  <!-- Subtle SIH Edition Tag & VoidX Trademark -->
+  <rect x="390" y="24" width="76" height="22" rx="6" fill="#10b981" fill-opacity="0.15" stroke="#10b981" stroke-width="1.2"/>
+  <text x="428" y="39" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10" font-weight="700" fill="#6ee7b7">SIH 2026</text>
+  <rect x="474" y="24" width="78" height="22" rx="6" fill="#059669" fill-opacity="0.25" stroke="#34d399" stroke-width="1.2"/>
+  <text x="513" y="39" text-anchor="middle" font-family="'Plus Jakarta Sans', sans-serif" font-size="10" font-weight="800" fill="#34d399">VoidX™</text>
+</svg>

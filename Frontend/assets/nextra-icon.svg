@@ -1,0 +1,142 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <!-- Background Gradients -->
+    <linearGradient id="iconBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#061a14"/>
+      <stop offset="50%" stop-color="#0b2921"/>
+      <stop offset="100%" stop-color="#041410"/>
+    </linearGradient>
+
+    <radialGradient id="ambientGlow" cx="48%" cy="46%" r="55%">
+      <stop offset="0%" stop-color="#10b981" stop-opacity="0.22"/>
+      <stop offset="60%" stop-color="#059669" stop-opacity="0.06"/>
+      <stop offset="100%" stop-color="#041410" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Brand Color Gradients -->
+    <linearGradient id="emeraldMint" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#059669"/>
+      <stop offset="50%" stop-color="#10b981"/>
+      <stop offset="100%" stop-color="#34d399"/>
+    </linearGradient>
+
+    <linearGradient id="mintBright" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#34d399"/>
+      <stop offset="100%" stop-color="#6ee7b7"/>
+    </linearGradient>
+
+    <linearGradient id="expresswayGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#047857"/>
+      <stop offset="45%" stop-color="#10b981"/>
+      <stop offset="80%" stop-color="#34d399"/>
+      <stop offset="100%" stop-color="#a7f3d0"/>
+    </linearGradient>
+
+    <linearGradient id="routeGlow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6ee7b7"/>
+      <stop offset="100%" stop-color="#10b981"/>
+    </linearGradient>
+
+    <filter id="nodeGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+
+    <filter id="subtleDrop" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#000000" flood-opacity="0.45"/>
+    </filter>
+  </defs>
+
+  <!-- Squircle App Container -->
+  <rect width="512" height="512" rx="116" fill="url(#iconBg)"/>
+  <rect width="508" height="508" x="2" y="2" rx="114" fill="none" stroke="url(#mintBright)" stroke-opacity="0.18" stroke-width="2"/>
+  <circle cx="256" cy="246" r="210" fill="url(#ambientGlow)"/>
+
+  <!-- Topographic Elevation Contours (Subtle Mountain Passes of Northeast India) -->
+  <g opacity="0.13" stroke="#34d399" stroke-width="1.6" fill="none">
+    <path d="M 64 360 C 130 330, 200 370, 290 330 C 370 295, 410 320, 448 290"/>
+    <path d="M 64 290 C 140 260, 220 300, 310 260 C 390 225, 430 250, 448 220"/>
+    <path d="M 74 210 C 150 180, 240 220, 330 180 C 400 145, 430 170, 448 150"/>
+    <path d="M 100 140 C 180 110, 270 150, 360 110 C 410 90, 435 105, 448 95"/>
+  </g>
+
+  <!-- Northeast India Silhouette Outline (Stylized Geometric Boundary) -->
+  <path d="M 120 175 Q 165 130 220 128 T 325 110 Q 380 125 410 160 T 425 240 Q 435 310 395 365 T 310 395 Q 240 405 180 375 T 115 310 Z"
+        fill="none" stroke="#34d399" stroke-width="1.5" stroke-dasharray="5 7" opacity="0.22"/>
+
+  <!-- Regional Connectivity Grid / AI Neural Lines -->
+  <g opacity="0.28" stroke="#6ee7b7" stroke-width="1.2">
+    <!-- Links connecting regional capital coordinates -->
+    <line x1="148" y1="184" x2="228" y2="152"/>
+    <line x1="228" y1="152" x2="340" y2="176"/>
+    <line x1="340" y1="176" x2="396" y2="242"/>
+    <line x1="396" y1="242" x2="368" y2="336"/>
+    <line x1="368" y1="336" x2="260" y2="358"/>
+    <line x1="260" y1="358" x2="162" y2="324"/>
+    <line x1="162" y1="324" x2="148" y2="184"/>
+    <line x1="228" y1="152" x2="260" y2="358"/>
+  </g>
+
+  <!-- 8 Regional State Nodes (Sikkim, Assam, Meghalaya, Arunachal, Nagaland, Manipur, Mizoram, Tripura) -->
+  <g fill="#6ee7b7">
+    <circle cx="148" cy="184" r="3.5" opacity="0.7"/> <!-- Sikkim Corridor -->
+    <circle cx="228" cy="152" r="4.5" opacity="0.8"/> <!-- Assam Gateway (Guwahati) -->
+    <circle cx="340" cy="176" r="4" opacity="0.75"/> <!-- Arunachal -->
+    <circle cx="396" cy="242" r="4" opacity="0.7"/> <!-- Nagaland -->
+    <circle cx="368" cy="336" r="4" opacity="0.75"/> <!-- Manipur -->
+    <circle cx="312" cy="370" r="3.5" opacity="0.7"/> <!-- Mizoram -->
+    <circle cx="260" cy="358" r="4" opacity="0.7"/> <!-- Tripura -->
+    <circle cx="162" cy="324" r="4" opacity="0.75"/> <!-- Meghalaya -->
+  </g>
+
+  <!-- MAIN BRAND GLYPH: GEOMETRIC "NE" MONOGRAM WITH INTEGRATED "X" ROUTE MATRIX -->
+  <g filter="url(#subtleDrop)">
+    <!-- LEFT PILLAR OF "N" (Solid Freight Highway Backbone) -->
+    <path d="M 124 162 C 124 148 135 138 149 138 L 169 138 C 183 138 194 148 194 162 L 194 350 C 194 364 183 374 169 374 L 149 374 C 135 374 124 364 124 350 Z"
+          fill="url(#emeraldMint)"/>
+
+    <!-- "E" THREE MULTIMODAL CORRIDOR TRACKS (Right Side) -->
+    <!-- E Top Track -->
+    <path d="M 304 138 L 388 138 C 398 138 406 146 406 156 L 406 172 C 406 182 398 190 388 190 L 304 190 Z"
+          fill="url(#emeraldMint)"/>
+
+    <!-- E Middle Track (Intelligent Routing Nexus) -->
+    <path d="M 288 238 L 372 238 C 382 238 390 246 390 256 L 390 270 C 390 280 382 288 372 288 L 288 288 Z"
+          fill="url(#emeraldMint)"/>
+
+    <!-- E Bottom Track -->
+    <path d="M 304 322 L 388 322 C 398 322 406 330 406 340 L 406 356 C 406 366 398 374 388 374 L 304 374 Z"
+          fill="url(#emeraldMint)"/>
+
+    <!-- E Vertical Backbone Spine -->
+    <path d="M 276 154 C 276 144 284 138 294 138 L 314 138 C 324 138 332 146 332 156 L 332 356 C 332 366 324 374 314 374 L 294 374 C 284 374 276 366 276 356 Z"
+          fill="url(#emeraldMint)"/>
+
+    <!-- THE DYNAMIC "X" HIGHWAY CROSSING (Diagonal Intersection) -->
+    <!-- Diagonal Slash 1: Downward Highway from Top-N to Bottom-E -->
+    <path d="M 166 148 L 330 366 C 335 373 345 375 352 370 L 366 360 C 373 355 374 345 368 338 L 204 120 C 199 113 189 111 182 116 L 168 126 C 161 131 160 141 166 148 Z"
+          fill="url(#expresswayGrad)"/>
+
+    <!-- Diagonal Slash 2: Upward Expressway from Bottom-N to Top-E (Forms the "X" of NEXTRA) -->
+    <path d="M 164 346 L 358 132 C 365 125 376 125 382 132 L 396 146 C 402 152 402 163 395 170 L 202 384 C 195 391 184 391 178 384 L 164 370 C 157 363 157 353 164 346 Z"
+          fill="url(#mintBright)" opacity="0.94"/>
+
+    <!-- Central Highway Lane Markings (White dashed smart route vectors) -->
+    <path d="M 188 356 L 372 152"
+          stroke="#ffffff" stroke-width="4.5" stroke-dasharray="14 10" stroke-linecap="round" opacity="0.9"/>
+
+    <path d="M 186 138 L 348 352"
+          stroke="#06221b" stroke-width="3.5" stroke-dasharray="12 8" stroke-linecap="round" opacity="0.45"/>
+  </g>
+
+  <!-- Central Intelligence Pulse Node (AI Core at X-Intersection) -->
+  <circle cx="272" cy="256" r="28" fill="#061a14" stroke="url(#mintBright)" stroke-width="3"/>
+  <circle cx="272" cy="256" r="16" fill="url(#mintBright)" filter="url(#nodeGlow)"/>
+  <circle cx="272" cy="256" r="7" fill="#ffffff"/>
+
+  <!-- Compass / Satellite AI Target Rings -->
+  <circle cx="272" cy="256" r="44" fill="none" stroke="#6ee7b7" stroke-width="1.5" stroke-dasharray="4 6" opacity="0.55"/>
+
+  <!-- Directional Navigation Arrow (Subtle Forward Movement Vector) -->
+  <polygon points="272,216 280,228 272,224 264,228" fill="#a7f3d0" opacity="0.85"/>
+</svg>

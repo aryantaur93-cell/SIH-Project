@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 48" width="100%" height="100%">
+  <defs>
+    <linearGradient id="cmpBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#061a14"/>
+      <stop offset="100%" stop-color="#0b2921"/>
+    </linearGradient>
+    <linearGradient id="cmpEmerald" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#059669"/>
+      <stop offset="100%" stop-color="#34d399"/>
+    </linearGradient>
+    <linearGradient id="cmpMint" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#34d399"/>
+      <stop offset="100%" stop-color="#6ee7b7"/>
+    </linearGradient>
+  </defs>
+
+  <!-- SQUARE APP ICON (LEFT) -->
+  <g transform="translate(5, 5)">
+    <rect width="38" height="38" rx="10" fill="url(#cmpBg)"/>
+    <rect width="36" height="36" x="1" y="1" rx="9" fill="none" stroke="#34d399" stroke-width="1" stroke-opacity="0.35"/>
+    
+    <!-- Mini NE Monogram -->
+    <rect x="8" y="9" width="5" height="20" rx="2" fill="url(#cmpEmerald)"/>
+    <rect x="22" y="9" width="9" height="4" rx="1.5" fill="url(#cmpEmerald)"/>
+    <rect x="20" y="17" width="8" height="4" rx="1.5" fill="url(#cmpEmerald)"/>
+    <rect x="22" y="25" width="9" height="4" rx="1.5" fill="url(#cmpEmerald)"/>
+    <rect x="20" y="9" width="4" height="20" rx="1.5" fill="url(#cmpEmerald)"/>
+
+    <!-- Mini Route X Crossing -->
+    <path d="M 11 10 L 26 28" stroke="#059669" stroke-width="4" stroke-linecap="round"/>
+    <path d="M 11 28 L 26 10" stroke="url(#cmpMint)" stroke-width="4" stroke-linecap="round"/>
+    <circle cx="18.5" cy="19" r="2.2" fill="#ffffff"/>
+  </g>
+
+  <!-- COMPACT WORDMARK -->
+  <g fill="#ffffff" transform="translate(54, 4)">
+    <!-- N -->
+    <path d="M 0 11 L 5.5 11 L 5.5 24 L 17.5 11 L 23 11 L 23 32 L 18 32 L 18 19 L 6 32 L 0 32 Z"/>
+
+    <!-- E -->
+    <path d="M 30 11 L 46 11 L 46 16 L 36 16 L 36 19 L 44 19 L 44 24 L 36 24 L 36 27 L 46 27 L 46 32 L 30 32 Z"/>
+
+    <!-- T -->
+    <path d="M 83 11 L 102 11 L 102 16 L 95 16 L 95 32 L 90 32 L 90 16 L 83 16 Z"/>
+
+    <!-- R -->
+    <path d="M 108 11 L 120 11 C 125 11 128 14 128 18 C 128 21 126 23 122 24 L 129 32 L 123 32 L 117 25 L 114 25 L 114 32 L 108 32 Z M 114 16 L 114 21 L 119 21 C 121 21 122 20 122 18.5 C 122 17 121 16 119 16 Z"/>
+
+    <!-- A -->
+    <path d="M 136 11 L 142 11 L 151 32 L 145 32 L 143 27 L 134 27 L 132 32 L 127 32 Z M 139 16 L 136 23 L 142 23 Z"/>
+
+    <!-- Distinctive Transit "X" -->
+    <g>
+      <path d="M 52 32 L 75 11" stroke="url(#cmpEmerald)" stroke-width="5.5" stroke-linecap="round"/>
+      <path d="M 52 11 L 75 32" stroke="url(#cmpMint)" stroke-width="5.5" stroke-linecap="round"/>
+      <circle cx="63.5" cy="21.5" r="2.8" fill="#061a14" stroke="#6ee7b7" stroke-width="1.2"/>
+      <circle cx="63.5" cy="21.5" r="1.2" fill="#34d399"/>
+    </g>
+
+    <!-- AI Pill Badge -->
+    <rect x="158" y="14" width="22" height="15" rx="4" fill="#10b981" fill-opacity="0.2" stroke="#10b981" stroke-width="1"/>
+    <text x="169" y="25" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="8.5" font-weight="700" fill="#6ee7b7">AI</text>
+  </g>
+</svg>
