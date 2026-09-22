@@ -1,226 +1,185 @@
 /**
- * NEXTRA - Authentication & Session Management
- * Role-based authentication, credentials validation, and operational profile chrome.
+ * NEXTRA - Authentication & Session Management (Dashboard)
+ * Now uses JWT tokens via the FastAPI backend.
+ *
+ * Responsibilities:
+ *   - Validate session on dashboard load → redirect to login.html if no JWT
+ *   - Update the topbar user chip with logged-in user info
+ *   - Handle logout → clear token → redirect to login.html
+ *   - Handle the in-dashboard role switcher (SIH evaluator feature)
+ *   - Restore saved session if the user refreshes the page
  */
 
-// Active User session storage
+// ── In-memory reference to the active user ─────────────────
 let currentUser = null;
 
+// ── Read the active user from stored JWT session ───────────
 function getActiveUser() {
     if (currentUser) return currentUser;
-    try {
-        const stored = localStorage.getItem("nextra_active_user");
-        if (stored) {
-            currentUser = JSON.parse(stored);
-            return currentUser;
-        }
-    } catch (e) {
-        console.error("Error reading session", e);
+    const stored = getStoredUser();
+    if (stored) {
+        currentUser = stored;
+        return currentUser;
     }
     return null;
 }
 
+// ── Write / clear the active user ──────────────────────────
 function setActiveUser(user) {
     currentUser = user;
     if (user) {
-        localStorage.setItem("nextra_active_user", JSON.stringify(user));
-        localStorage.setItem("nextraRole", user.role);
+        setStoredUser(user);
     } else {
-        localStorage.removeItem("nextra_active_user");
-        localStorage.removeItem("nextraRole");
+        clearToken();
     }
 }
 
-// Credentials Validation & Login Workflow
-function handleLogin(event) {
-    if (event && event.preventDefault) {
-        event.preventDefault();
+// ── Session guard — called on DOMContentLoaded in main.js ──
+function requireDashboardSession() {
+    if (!NextraAuth.isAuthenticated()) {
+        window.location.href = "login.html";
+        return false;
     }
-
-    const roleSelect = document.getElementById("login-role");
-    const roleKey = roleSelect ? roleSelect.value : "admin";
-    const profile = ROLE_PROFILES[roleKey] || ROLE_PROFILES.admin;
-    const email = document.getElementById("login-email")?.value.trim().toLowerCase();
-    const password = document.getElementById("login-password")?.value;
-    const errorEl = document.getElementById("login-error");
-
-    // Match credentials against role profiles or user directory
-    const users = NextraApi._get(NextraApi.KEYS.USERS);
-    const matchedUser = users.find(u => u.email.toLowerCase() === email && u.role === roleKey);
-
-    const isDirectMatch = (email === profile.email.toLowerCase() && password === profile.password);
-    const isUserMatch = (matchedUser && password === "demo" || password === profile.password);
-
-    if (!isDirectMatch && !isUserMatch) {
-        if (errorEl) {
-            errorEl.textContent = `Invalid credentials for ${profile.label}. Try email: "${profile.email}" and password: "${profile.password}" (or use "Fill login details").`;
-        }
-        return;
-    }
-
-    // Build user session object
-    const sessionUser = {
-        user_id: matchedUser ? matchedUser.user_id : (profile.key === 'admin' ? 'USR-001' : 'USR-002'),
-        name: matchedUser ? matchedUser.name : profile.label,
-        email: profile.email,
-        role: profile.key,
-        assigned_area: matchedUser ? matchedUser.assigned_area : profile.assignedArea,
-        area_name: profile.areaName,
-        initials: profile.initials,
-        status: "ACTIVE"
-    };
-
-    setActiveUser(sessionUser);
-
-    // Hide login modal
-    const loginScreen = document.getElementById("login-screen");
-    if (loginScreen) {
-        loginScreen.classList.add("hidden");
-    }
-
-    // Update UI Chrome & Permissions
-    updateUserChrome(sessionUser);
-    renderRoleSidebar(sessionUser.role);
-    renderRoleDashboard(sessionUser.role);
-    switchTab("Dashboard");
-
-    NextraApi.logAudit("USER_LOGIN", `${sessionUser.name} signed in`, "OFFLINE", "ACTIVE_SESSION");
-
-    if (typeof showToast === 'function') {
-        showToast(`Authenticated: ${profile.label} (${profile.areaName})`);
-    }
-
-    // Invalidate map size so it renders accurately
-    setTimeout(() => {
-        if (typeof map !== 'undefined' && map && typeof map.invalidateSize === 'function') {
-            map.invalidateSize();
-        }
-    }, 200);
+    return true;
 }
 
-// Pre-fill login details for prototype demo convenience
-function fillLoginDetails() {
-    const roleSelect = document.getElementById("login-role");
-    const roleKey = roleSelect ? roleSelect.value : "admin";
-    const profile = ROLE_PROFILES[roleKey] || ROLE_PROFILES.admin;
-    const emailInput = document.getElementById("login-email");
-    const passInput = document.getElementById("login-password");
-    const errorEl = document.getElementById("login-error");
+// ── Restore session after page refresh ─────────────────────
+async function restoreSavedSession() {
+    if (!NextraAuth.isAuthenticated()) {
+        window.location.href = "login.html";
+        return false;
+    }
 
-    if (emailInput) emailInput.value = profile.email;
-    if (passInput) passInput.value = profile.password;
-    if (errorEl) errorEl.textContent = "";
+    // Verify token is still valid
+    try {
+        const user = await NextraAuth.getMe();
+        currentUser = user;
 
-    if (typeof showToast === 'function') {
-        showToast(`Filled ${profile.label} credentials: ${profile.email}`);
+        // Hide the old inline login overlay if it exists
+        const loginScreen = document.getElementById("login-screen");
+        if (loginScreen) loginScreen.classList.add("hidden");
+
+        // Re-render dashboard for the stored role
+        updateUserChrome(user);
+        renderRoleSidebar(user.role);
+        renderRoleDashboard(user.role);
+        return true;
+    } catch (err) {
+        console.error("[NEXTRA Auth] Session validation failed:", err);
+        clearToken();
+        window.location.href = "login.html";
+        return false;
     }
 }
 
-// Session Restoration on Page Reload
-function restoreSavedSession() {
-    const user = getActiveUser();
-    const loginScreen = document.getElementById("login-screen");
-
-    if (!user) {
-        if (loginScreen) loginScreen.classList.remove("hidden");
-        return;
-    }
-
-    if (loginScreen) loginScreen.classList.add("hidden");
-    updateUserChrome(user);
-    renderRoleSidebar(user.role);
-    renderRoleDashboard(user.role);
-}
-
-// Update Topbar and User Badge
+// ── Update Topbar / User Badge ──────────────────────────────
 function updateUserChrome(user) {
     const profile = ROLE_PROFILES[user.role] || ROLE_PROFILES.admin;
-    const userName = document.getElementById("user-name");
-    const userRole = document.getElementById("user-role-label");
-    const userAvatar = document.getElementById("user-avatar");
-    const greeting = document.getElementById("workspace-greeting");
-    const greetingSubtext = document.getElementById("workspace-subtext");
-    const topbarSelect = document.getElementById("role-select");
 
-    if (userName) userName.textContent = user.name;
-    if (userRole) userRole.textContent = `${profile.label} · ${profile.assignedArea}`;
-    if (userAvatar) userAvatar.textContent = profile.initials;
-    if (greeting) greeting.textContent = `${profile.title} 👋`;
-    if (greetingSubtext) greetingSubtext.textContent = `Active Operational Sector: ${profile.areaName}`;
-    if (topbarSelect) topbarSelect.value = user.role;
+    const userName    = document.getElementById("user-name");
+    const userRole    = document.getElementById("user-role-label");
+    const userAvatar  = document.getElementById("user-avatar");
+    const greeting    = document.getElementById("workspace-greeting");
+    const greetSub    = document.getElementById("workspace-subtext");
 
-    // Render Role Console banner
+    if (userName)   userName.textContent   = user.name;
+    if (userRole)   userRole.textContent   = formatRoleArea(user);
+    if (userAvatar) userAvatar.textContent = getInitials(user.name);
+    if (greeting)   greeting.textContent   = `Welcome, ${user.name} 👋`;
+    if (greetSub)   greetSub.textContent   = `Active Sector: ${user.assigned_state || profile.areaName || 'All NE'}`;
+
     renderRoleConsole(user);
+
+    // Load notification count
+    loadNotificationCount();
 }
 
-// Dynamic Role Switcher (for SIH Evaluators & Demonstration)
-function switchRole(roleKey) {
-    const profile = ROLE_PROFILES[roleKey] || ROLE_PROFILES.admin;
-    const users = NextraApi._get(NextraApi.KEYS.USERS);
-    const matchedUser = users.find(u => u.role === roleKey) || {
-        user_id: `USR-${roleKey.toUpperCase()}`,
-        name: profile.label,
-        assigned_area: profile.assignedArea
+function getInitials(name) {
+    if (!name) return "?";
+    const parts = name.trim().split(" ");
+    if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    return name[0].toUpperCase();
+}
+
+function formatRoleArea(user) {
+    const profile = ROLE_PROFILES[user.role];
+    const roleLabel = profile ? profile.label : user.role;
+    const area = user.assigned_state || "";
+    return area && area !== "ALL" ? `${roleLabel} · ${area}` : roleLabel;
+}
+
+// ── Sign Out ────────────────────────────────────────────────
+function logout() {
+    setActiveUser(null);
+    currentUser = null;
+    NextraAuth.logout();
+}
+
+// ── In-Dashboard Role Switcher (SIH evaluator feature) ─────
+// Logs in as a different demo user to show different perspectives.
+async function switchRole(roleKey) {
+    const demoAccounts = {
+        admin: { email: "admin@nextra.demo", password: "Admin@123" },
+        field_officer: { email: "officer@nextra.demo", password: "Officer@123" },
+        logistics: { email: "logistics@nextra.demo", password: "Logistics@123" },
+        driver: { email: "driver@nextra.demo", password: "Driver@123" },
     };
 
-    const sessionUser = {
-        user_id: matchedUser.user_id,
-        name: matchedUser.name,
-        email: profile.email,
-        role: profile.key,
-        assigned_area: matchedUser.assigned_area || profile.assignedArea,
-        area_name: profile.areaName,
-        initials: profile.initials,
-        status: "ACTIVE"
-    };
+    const creds = demoAccounts[roleKey];
+    if (!creds) return;
 
-    setActiveUser(sessionUser);
-    updateUserChrome(sessionUser);
-    renderRoleSidebar(sessionUser.role);
-    renderRoleDashboard(sessionUser.role);
+    try {
+        const data = await NextraAuth.login(creds.email, creds.password);
+        currentUser = data.user;
 
-    // Switch to Dashboard
-    switchTab("Dashboard");
+        updateUserChrome(data.user);
+        renderRoleSidebar(data.user.role);
+        renderRoleDashboard(data.user.role);
+        switchTab("Dashboard");
 
-    NextraApi.logAudit("ROLE_SWITCHED", `Switched to perspective: ${profile.label}`, "PREVIOUS_ROLE", profile.label);
-
-    if (typeof showToast === 'function') {
-        showToast(`Workspace Switched to: ${profile.label}`);
-    }
-
-    setTimeout(() => {
-        if (typeof map !== 'undefined' && map && typeof map.invalidateSize === 'function') {
-            map.invalidateSize();
+        if (typeof showToast === "function") {
+            showToast(`Switched to: ${ROLE_PROFILES[roleKey]?.label || roleKey}`);
         }
-    }, 200);
+
+        setTimeout(() => {
+            if (typeof map !== "undefined" && map && typeof map.invalidateSize === "function") {
+                map.invalidateSize();
+            }
+        }, 200);
+    } catch (err) {
+        console.error("[NEXTRA] Role switch failed:", err);
+        if (typeof showToast === "function") {
+            showToast(`Role switch failed: ${err.message}`);
+        }
+    }
 }
 
-// Role Console Banner
+// ── Role Console Banner ─────────────────────────────────────
 function renderRoleConsole(user) {
-    const profile = ROLE_PROFILES[user.role] || ROLE_PROFILES.admin;
+    const profile   = ROLE_PROFILES[user.role] || ROLE_PROFILES.admin;
     const consoleEl = document.getElementById("role-console");
     if (!consoleEl) return;
 
-    let quickPills = '';
-    if (user.role === 'admin') {
+    let quickPills = "";
+    if (user.role === "admin") {
         quickPills = `
             <button type="button" class="role-action" onclick="switchTab('User-Management')">👥 User Directory</button>
             <button type="button" class="role-action" onclick="switchTab('Verification-Center')">🔍 Verification Queue</button>
             <button type="button" class="role-action" onclick="switchTab('Audit-Logs')">📜 Audit Trail</button>
         `;
-    } else if (user.role === 'field_officer') {
+    } else if (user.role === "field_officer") {
         quickPills = `
             <button type="button" class="role-action" onclick="switchTab('Verification-Center')">🔍 Verify Area Evidence</button>
             <button type="button" class="role-action" onclick="switchTab('Field-Reports')">📋 Create Ground Report</button>
-            <button type="button" class="role-action" onclick="focusState('MEGHALAYA')">🗺️ Focus Meghalaya Sector</button>
+            <button type="button" class="role-action" onclick="switchTab('Area-Intelligence')">🗺️ Area Intelligence</button>
         `;
-    } else if (user.role === 'logistics') {
+    } else if (user.role === "logistics") {
         quickPills = `
             <button type="button" class="role-action" onclick="switchTab('Transport-Requests')">📦 Create Transport Request</button>
             <button type="button" class="role-action" onclick="switchTab('Shipments')">🚚 Track Shipments</button>
-            <button type="button" class="role-action" onclick="switchTab('Smart-Route')">🗺️ Route Planner</button>
+            <button type="button" class="role-action" onclick="switchTab('Logistics')">🗺️ Fleet Overview</button>
         `;
-    } else if (user.role === 'driver') {
+    } else if (user.role === "driver") {
         quickPills = `
             <button type="button" class="role-action" onclick="switchTab('Report-Issue')">⚠️ Report Road Hazard</button>
             <button type="button" class="role-action" onclick="switchTab('Nearby-Drivers')">📡 Nearby Drivers</button>
@@ -230,9 +189,9 @@ function renderRoleConsole(user) {
 
     consoleEl.innerHTML = `
         <div class="role-console-copy">
-            <span class="eyebrow">${profile.label} Workspace · ${profile.areaName}</span>
-            <h3>${profile.title}</h3>
-            <p>${profile.description}</p>
+            <span class="eyebrow">${profile.label} Workspace · ${user.assigned_state || profile.areaName || 'All NE'}</span>
+            <h3>${profile.title || 'Welcome to NEXTRA'}</h3>
+            <p>${profile.description || 'NE Region Intelligent Transport & Routing Assistant'}</p>
         </div>
         <div class="role-console-actions">
             ${quickPills}
@@ -240,23 +199,60 @@ function renderRoleConsole(user) {
     `;
 }
 
-// Sign Out Handler
-function logout() {
-    const user = getActiveUser();
-    if (user) {
-        NextraApi.logAudit("USER_LOGOUT", `${user.name} logged out`, "ACTIVE_SESSION", "SIGNED_OUT");
+// ── Notification Count & Alerts Counters ────────────────────
+async function loadNotificationCount() {
+    try {
+        if (typeof NextraNotifications !== "undefined" && typeof NextraNotifications.getUnreadCount === "function") {
+            const data = await NextraNotifications.getUnreadCount();
+            const count = data.unread_count || 0;
+            const pill = document.getElementById("notification-unread-count");
+            const headerUnread = document.getElementById("notif-header-unread");
+            if (pill) {
+                pill.textContent = count;
+                if (count > 0) pill.classList.add("pulse");
+                else pill.classList.remove("pulse");
+            }
+            if (headerUnread) headerUnread.textContent = `${count} unread`;
+        }
+        if (typeof loadActiveAlertsCount === "function") {
+            loadActiveAlertsCount();
+        }
+    } catch (err) {
+        console.warn("[NEXTRA] Could not load notifications:", err);
     }
-    setActiveUser(null);
-    const loginScreen = document.getElementById("login-screen");
-    if (loginScreen) {
-        loginScreen.classList.remove("hidden");
-    }
-    const passInput = document.getElementById("login-password");
-    if (passInput) passInput.value = "";
-    const errText = document.getElementById("login-error");
-    if (errText) errText.textContent = "";
+}
 
-    if (typeof showToast === 'function') {
-        showToast("Signed out. Returned to NEXTRA security gateway.");
+// ── Legacy: handleLogin kept for inline form ────────────────
+async function handleLogin(event) {
+    if (event && event.preventDefault) event.preventDefault();
+
+    const emailInput = document.getElementById("login-email");
+    const passInput  = document.getElementById("login-password");
+    const errorEl    = document.getElementById("login-error");
+    const email = emailInput ? emailInput.value.trim().toLowerCase() : "";
+    const password = passInput ? passInput.value : "";
+
+    try {
+        const data = await NextraAuth.login(email, password);
+        currentUser = data.user;
+
+        const loginScreen = document.getElementById("login-screen");
+        if (loginScreen) loginScreen.classList.add("hidden");
+
+        updateUserChrome(data.user);
+        renderRoleSidebar(data.user.role);
+        renderRoleDashboard(data.user.role);
+        switchTab("Dashboard");
+
+        loadNotificationCount();
+        if (typeof loadActiveAlertsCount === "function") {
+            loadActiveAlertsCount();
+        }
+
+        if (typeof showToast === "function") {
+            showToast(`Authenticated: ${data.user.name} (${data.user.role})`);
+        }
+    } catch (err) {
+        if (errorEl) errorEl.textContent = err.message || "Login failed.";
     }
 }

@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Account — NEXTRA™ | NE Region X-Intelligent Transport & Routing Assistant</title>
+    <meta name="description" content="Create your NEXTRA account to access AI-powered logistics and transport intelligence for Northeast India.">
+    <meta name="author" content="VoidX™">
+    <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+    <link rel="stylesheet" href="css/auth.css">
+    <style>
+        /* Extra layout for signup page two-column form */
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        @media (max-width: 520px) {
+            .form-row { grid-template-columns: 1fr; }
+        }
+        .section-sep {
+            border: none;
+            border-top: 1px solid var(--border);
+            margin: 16px 0 6px;
+        }
+        .section-title {
+            font: 700 10px var(--font-mono);
+            color: var(--primary);
+            letter-spacing: 1.4px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+        .auth-panel { max-width: 640px; margin: 0 auto; }
+        .auth-page.signup-page {
+            display: block;
+            background: #f3f7f5;
+            min-height: 100vh;
+            padding: 32px 16px 48px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="auth-page signup-page">
+    <div class="auth-panel" style="background:#fff; border-radius:16px; border:1px solid var(--border); box-shadow:0 12px 40px rgba(9,35,28,.1); padding: clamp(24px,4vh,44px) clamp(20px,4vw,44px);">
+
+        <!-- Back link -->
+        <a href="login.html" class="auth-back">← Back to Sign In</a>
+
+        <!-- Brand -->
+        <div class="auth-brand">
+            <img src="assets/nextra-icon.svg" alt="NEXTRA" class="auth-brand-icon">
+            <div class="auth-brand-text">
+                <strong>NEXTRA™</strong>
+                <span>NE Region X-Intelligent Transport &amp; Routing Assistant · <span style="color:#059669;font-weight:700;">VoidX™</span></span>
+            </div>
+        </div>
+
+        <!-- Heading -->
+        <div class="auth-heading">
+            <span class="eyebrow">New Account</span>
+            <h2>Create Your NEXTRA Account</h2>
+            <p>Join the NEXTRA platform. Fill in your details below to get started.</p>
+        </div>
+
+        <!-- Success Screen (shown after registration) -->
+        <div class="auth-success-screen" id="signup-success">
+            <div class="success-icon">✅</div>
+            <h3>Account Created Successfully!</h3>
+            <p>Your NEXTRA account has been created and is ready to use.<br>You can now sign in with your credentials.</p>
+            <button class="btn-primary" style="margin-top:20px; justify-content:center;"
+                onclick="window.location.href='login.html'">
+                Continue to Login →
+            </button>
+        </div>
+
+        <!-- Sign Up Form -->
+        <form class="auth-form" id="signup-form" onsubmit="handleSignupSubmit(event)" novalidate>
+
+            <!-- ── Personal Information ──────────────────── -->
+            <div class="section-title">Personal Information</div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label" for="su-name">Full Name</label>
+                    <input class="form-input" type="text" id="su-name"
+                        placeholder="Your full name" autocomplete="name">
+                    <span class="field-error" id="err-name"></span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="su-phone">Phone Number</label>
+                    <input class="form-input" type="tel" id="su-phone"
+                        placeholder="+91 9XXXXXXXXX" autocomplete="tel">
+                    <span class="field-error" id="err-phone"></span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="su-email">Email Address</label>
+                <input class="form-input" type="email" id="su-email"
+                    placeholder="your@email.com" autocomplete="email">
+                <span class="field-error" id="err-email"></span>
+            </div>
+
+            <!-- ── Password ─────────────────────────────── -->
+            <hr class="section-sep">
+            <div class="section-title">Set Password</div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label" for="su-password">Password</label>
+                    <div class="password-wrap">
+                        <input class="form-input" type="password" id="su-password"
+                            placeholder="Minimum 8 characters"
+                            autocomplete="new-password"
+                            oninput="updateStrength(this.value)">
+                        <button type="button" class="pw-toggle" id="pw-toggle-su"
+                            onclick="togglePassword('su-password','pw-toggle-su')"
+                            aria-label="Toggle password visibility">👁</button>
+                    </div>
+                    <div class="pw-strength-wrap">
+                        <div class="pw-strength-bar">
+                            <div class="pw-strength-fill" id="pw-strength-fill"></div>
+                        </div>
+                        <span class="pw-strength-text" id="pw-strength-text"></span>
+                    </div>
+                    <span class="field-error" id="err-password"></span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="su-confirm">Confirm Password</label>
+                    <div class="password-wrap">
+                        <input class="form-input" type="password" id="su-confirm"
+                            placeholder="Re-enter password"
+                            autocomplete="new-password">
+                        <button type="button" class="pw-toggle" id="pw-toggle-conf"
+                            onclick="togglePassword('su-confirm','pw-toggle-conf')"
+                            aria-label="Toggle password visibility">👁</button>
+                    </div>
+                    <span class="field-error" id="err-confirm"></span>
+                </div>
+            </div>
+
+            <!-- ── Role & Area ──────────────────────────── -->
+            <hr class="section-sep">
+            <div class="section-title">Role & Region</div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label" for="su-role">Role</label>
+                    <select class="form-input form-select" id="su-role"
+                        onchange="updateRoleFields()">
+                        <option value="">— Select your role —</option>
+                        <option value="driver">🚚 Driver</option>
+                        <option value="logistics">📦 Logistics</option>
+                    </select>
+                    <span class="field-error" id="err-role"></span>
+                    <p style="font-size: 11px; color: var(--text-muted); margin-top: 4px; line-height: 1.3;">
+                        ℹ️ Field Officer and Admin roles require central clearance and are provisioned directly by Regional Command.
+                    </p>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="su-area">Assigned Area / Region</label>
+                    <select class="form-input form-select" id="su-area">
+                        <option value="">— Select region —</option>
+                        <option value="ASSAM">Assam</option>
+                        <option value="MEGHALAYA">Meghalaya</option>
+                        <option value="MANIPUR">Manipur</option>
+                        <option value="ARUNACHAL">Arunachal Pradesh</option>
+                        <option value="NAGALAND">Nagaland</option>
+                        <option value="MIZORAM">Mizoram</option>
+                        <option value="TRIPURA">Tripura</option>
+                        <option value="SIKKIM">Sikkim</option>
+                        <option value="ALL">All Regions</option>
+                    </select>
+                    <span class="field-error" id="err-area"></span>
+                </div>
+            </div>
+
+            <!-- ── Field Officer Fields ─────────────────── -->
+            <div class="role-fields hidden" id="fields-field_officer">
+                <hr class="section-sep">
+                <div class="section-title">Field Officer Details</div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="su-officer-id">Officer ID</label>
+                        <input class="form-input" type="text" id="su-officer-id"
+                            placeholder="e.g. FO-ASSAM-001">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="su-assigned-region">Assigned Region</label>
+                        <input class="form-input" type="text" id="su-assigned-region"
+                            placeholder="e.g. Assam Sector">
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── Logistics Fields ─────────────────────── -->
+            <div class="role-fields hidden" id="fields-logistics">
+                <hr class="section-sep">
+                <div class="section-title">Logistics Details</div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="su-company">Company Name</label>
+                        <input class="form-input" type="text" id="su-company"
+                            placeholder="e.g. NE FreightCo Pvt Ltd">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="su-op-region">Operating Region</label>
+                        <input class="form-input" type="text" id="su-op-region"
+                            placeholder="e.g. Assam & Meghalaya">
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── Driver Fields ────────────────────────── -->
+            <div class="role-fields hidden" id="fields-driver">
+                <hr class="section-sep">
+                <div class="section-title">Driver Details</div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="su-driver-id">Driver ID</label>
+                        <input class="form-input" type="text" id="su-driver-id"
+                            placeholder="e.g. DRV-ASSAM-001">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="su-license">Driving License Number</label>
+                        <input class="form-input" type="text" id="su-license"
+                            placeholder="e.g. AS01-2024-XXXXXXX">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="su-truck">Truck Number</label>
+                    <input class="form-input" type="text" id="su-truck"
+                        placeholder="e.g. NEXTRA-TRUCK-01">
+                </div>
+            </div>
+
+            <!-- Alerts -->
+            <div class="auth-alert error" id="signup-error" role="alert"></div>
+
+            <!-- Submit -->
+            <button class="btn-primary" type="submit" id="signup-btn" style="margin-top:16px;">
+                Create Account <span>→</span>
+            </button>
+
+            <div style="text-align:center; margin-top:12px;">
+                <span style="font-size:12px; color:var(--text-muted);">Already have an account? </span>
+                <button type="button" class="btn-link" onclick="window.location.href='login.html'">
+                    Sign In
+                </button>
+            </div>
+
+        </form>
+
+        <!-- Footer -->
+        <div class="auth-footer">
+            <span>© 2026 NEXTRA™ · A <strong>VoidX™</strong> Platform</span>
+            <span>SIH 2026 · NER Intelligence</span>
+        </div>
+
+    </div>
+</div>
+
+<!-- Scripts -->
+<script src="data/demo-users.js"></script>
+<script src="js/session.js"></script>
+<script src="js/api.js"></script>
+<script>
+    redirectIfLoggedIn();
+
+    // ── Show/hide role-specific fields ────────────────────
+    function updateRoleFields() {
+        const role = document.getElementById("su-role").value;
+        ["field_officer", "logistics", "driver"].forEach(r => {
+            const el = document.getElementById("fields-" + r);
+            if (el) el.classList.toggle("hidden", r !== role);
+        });
+    }
+
+    // ── Password show/hide ────────────────────────────────
+    function togglePassword(inputId, btnId) {
+        const input = document.getElementById(inputId);
+        const btn   = document.getElementById(btnId);
+        if (!input) return;
+        if (input.type === "password") {
+            input.type = "text";
+            if (btn) btn.textContent = "🙈";
+        } else {
+            input.type = "password";
+            if (btn) btn.textContent = "👁";
+        }
+    }
+
+    // ── Password strength ─────────────────────────────────
+    function updateStrength(pw) {
+        const fill = document.getElementById("pw-strength-fill");
+        const text = document.getElementById("pw-strength-text");
+        if (!fill || !text) return;
+
+        let score = 0;
+        if (pw.length >= 8)            score++;
+        if (/[A-Z]/.test(pw))          score++;
+        if (/[a-z]/.test(pw))          score++;
+        if (/[0-9]/.test(pw))          score++;
+        if (/[^A-Za-z0-9]/.test(pw))   score++;
+
+        const levels = [
+            { cls: "", label: "" },
+            { cls: "strength-weak",   label: "Weak" },
+            { cls: "strength-fair",   label: "Fair" },
+            { cls: "strength-good",   label: "Good" },
+            { cls: "strength-strong", label: "Strong" },
+            { cls: "strength-strong", label: "Strong" }
+        ];
+
+        const lvl = levels[Math.min(score, 5)];
+        fill.className = "pw-strength-fill " + lvl.cls;
+        text.textContent = pw.length > 0 ? "Strength: " + lvl.label : "";
+    }
+
+    // ── Clear single field error ──────────────────────────
+    function clearFErr(id) {
+        const el = document.getElementById("err-" + id);
+        if (el) el.textContent = "";
+    }
+    function setFErr(id, msg) {
+        const el = document.getElementById("err-" + id);
+        if (el) el.textContent = msg;
+    }
+
+    // Attach live clear listeners
+    ["name","phone","email","password","confirm","role","area"].forEach(id => {
+        const el = document.getElementById("su-" + id);
+        if (el) el.addEventListener("input", () => clearFErr(id));
+    });
+
+    // ── Email uniqueness check ────────────────────────────
+    function emailAlreadyExists(email) {
+        return !!findUserByEmail(email);
+    }
+
+    // ── Validation ────────────────────────────────────────
+    function isValidEmail(email) {
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    }
+    function isValidPhone(phone) {
+        return /^[+\d\s\-()]{7,15}$/.test(phone);
+    }
+    function isStrongPassword(pw) {
+        return pw.length >= 8
+            && /[A-Z]/.test(pw)
+            && /[a-z]/.test(pw)
+            && /[0-9]/.test(pw);
+    }
+
+    // ── Handle Signup (Connected to FastAPI Backend) ──────
+    async function handleSignupSubmit(event) {
+        event.preventDefault();
+
+        // Clear all errors
+        ["name","phone","email","password","confirm","role","area"].forEach(id => clearFErr(id));
+        const alertEl = document.getElementById("signup-error");
+        alertEl.textContent = ""; alertEl.classList.remove("visible");
+
+        const name    = document.getElementById("su-name").value.trim();
+        const phone   = document.getElementById("su-phone").value.trim();
+        const email   = document.getElementById("su-email").value.trim();
+        const pw      = document.getElementById("su-password").value;
+        const confirm = document.getElementById("su-confirm").value;
+        const role    = document.getElementById("su-role").value;
+        const area    = document.getElementById("su-area").value;
+
+        let valid = true;
+
+        if (!name)  { setFErr("name", "Please enter your full name."); valid = false; }
+        if (!phone) { setFErr("phone", "Please enter your phone number."); valid = false; }
+        else if (!isValidPhone(phone)) { setFErr("phone", "Please enter a valid phone number."); valid = false; }
+
+        if (!email) { setFErr("email", "Please enter your email."); valid = false; }
+        else if (!isValidEmail(email)) { setFErr("email", "Please enter a valid email address."); valid = false; }
+
+        if (!pw) { setFErr("password", "Please enter a password."); valid = false; }
+        else if (!isStrongPassword(pw)) {
+            setFErr("password", "Password must be 8+ chars with uppercase, lowercase & a number.");
+            valid = false;
+        }
+
+        if (!confirm) { setFErr("confirm", "Please confirm your password."); valid = false; }
+        else if (pw && pw !== confirm) { setFErr("confirm", "Passwords do not match."); valid = false; }
+
+        if (!role) { setFErr("role", "Please select your role."); valid = false; }
+        if (!area) { setFErr("area", "Please select your assigned area."); valid = false; }
+
+        if (!valid) {
+            alertEl.textContent = "Please correct the highlighted fields.";
+            alertEl.classList.add("visible");
+            return;
+        }
+
+        const signupBtn = document.getElementById("signup-btn");
+        if (signupBtn) {
+            signupBtn.disabled = true;
+            signupBtn.textContent = "Creating Account...";
+        }
+
+        try {
+            // Register through FastAPI backend (do not auto-login so user logs in cleanly)
+            const signupResult = await NextraAuth.signup({
+                name,
+                email,
+                password: pw,
+                role,
+                phone,
+                assigned_state: area,
+                assigned_district: "ALL",
+                autoLogin: false
+            });
+
+            // Ensure no stale session exists so user can log in cleanly
+            if (typeof clearToken === "function") clearToken();
+            if (typeof clearSession === "function") clearSession();
+
+            // Synchronize legacy user record if present
+            if (typeof saveRegisteredUser === "function") {
+                saveRegisteredUser({
+                    user_id: signupResult.user.id,
+                    name,
+                    email: email.toLowerCase(),
+                    phone,
+                    role,
+                    assigned_area: area,
+                    area_name: areaLabel(area),
+                    status: "ACTIVE",
+                    created_at: new Date().toISOString(),
+                    is_demo: false
+                });
+            }
+
+            // Show success screen
+            document.getElementById("signup-form").style.display = "none";
+            document.getElementById("signup-success").classList.add("visible");
+
+        } catch (err) {
+            console.error("[Signup Error]", err);
+            alertEl.textContent = err.message || "Registration failed. Please check your information.";
+            alertEl.classList.add("visible");
+        } finally {
+            if (signupBtn) {
+                signupBtn.disabled = false;
+                signupBtn.textContent = "Create Account →";
+            }
+        }
+    }
+
+    function areaLabel(code) {
+        const map = {
+            ASSAM: "Assam", MEGHALAYA: "Meghalaya", MANIPUR: "Manipur",
+            ARUNACHAL: "Arunachal Pradesh", NAGALAND: "Nagaland",
+            MIZORAM: "Mizoram", TRIPURA: "Tripura", SIKKIM: "Sikkim",
+            ALL: "All Regions"
+        };
+        return map[code] || code;
+    }
+</script>
+
+</body>
+</html>

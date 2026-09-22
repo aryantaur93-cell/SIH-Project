@@ -1,23 +1,26 @@
 /**
  * NEXTRA - Role-Based Navigation & Dynamic Sidebar Engine
  * Generates role-specific sidebars and enforces client-side tab navigation authorization.
+ * Smart Route removed per requirements — route intelligence is in Map/Shipments.
  */
 
-// Sidebars Configuration explicitly matching user requirements
+// Sidebars Configuration — NO Smart Route sidebar item (exact lists per requirements)
 const ROLE_SIDEBAR_MENUS = {
     admin: [
         { id: "Dashboard", label: "Dashboard", icon: "🏠", badge: "Live", perm: "view_global_dashboard" },
         { id: "Live-Map", label: "Live Map", icon: "🗺️", badge: "GIS", perm: "view_live_map" },
-        { id: "Smart-Route", label: "Smart Route", icon: "⚡", badge: "AI", perm: "view_smart_route" },
-        { id: "Risk-Intelligence", label: "Risk Intelligence", icon: "⚠️", badge: "3 High", badgeClass: "badge-danger", perm: "view_risk_intelligence" },
+        { id: "Risk-Intelligence", label: "Risk Intelligence", icon: "⚠️", badge: "Live", badgeClass: "badge-danger", perm: "view_risk_intelligence" },
         { id: "Accessibility", label: "Accessibility", icon: "♿", badge: "Index", perm: "view_accessibility" },
-        { id: "Logistics", label: "Logistics", icon: "📦", badge: "124", perm: "view_logistics" },
-        { id: "Shipments", label: "Shipments", icon: "🚚", badge: "24", perm: "manage_shipments" },
-        { id: "Drivers", label: "Drivers", icon: "👤", badge: "18", perm: "manage_drivers" },
-        { id: "Trucks", label: "Trucks", icon: "🚛", badge: "32", perm: "manage_trucks" },
-        { id: "Field-Officers", label: "Field Officers", icon: "🔍", badge: "8", perm: "view_field_officers" },
-        { id: "Field-Reports", label: "Reports", icon: "📋", badge: "Live", perm: "view_reports" },
+        { id: "Weather", label: "Weather Radar", icon: "🌧️", badge: "Live", perm: "view_weather" },
+        { id: "Logistics", label: "Logistics", icon: "📦", badge: "Hub", perm: "view_logistics" },
+        { id: "Shipments", label: "Shipments", icon: "🚚", badge: "Track", perm: "manage_shipments" },
+        { id: "Drivers", label: "Drivers", icon: "👤", badge: "Fleet", perm: "manage_drivers" },
+        { id: "Trucks", label: "Trucks", icon: "🚛", badge: "Fleet", perm: "manage_trucks" },
+        { id: "Field-Officers", label: "Field Officers", icon: "🔍", badge: "Team", perm: "view_field_officers" },
+        { id: "Field-Reports", label: "Field Reports", icon: "📋", badge: "Live", perm: "view_reports" },
         { id: "Verification-Center", label: "Verification Center", icon: "🛡️", badge: "Pending", badgeClass: "badge-amber", perm: "verify_all_images" },
+        { id: "Alerts", label: "Alerts", icon: "🚨", badge: "Live", badgeClass: "badge-danger", perm: "view_alerts" },
+        { id: "Reports", label: "Reports", icon: "📊", badge: "Summary", perm: "view_reports" },
         { id: "User-Management", label: "User Management", icon: "👥", badge: "Admin", badgeClass: "badge-admin", perm: "manage_users" },
         { id: "Audit-Logs", label: "Audit Logs", icon: "📜", badge: "Sec", perm: "view_audit_logs" },
         { id: "Settings", label: "Settings", icon: "⚙️", badge: "", perm: "manage_settings" }
@@ -26,40 +29,40 @@ const ROLE_SIDEBAR_MENUS = {
     field_officer: [
         { id: "Dashboard", label: "Dashboard", icon: "🏠", badge: "Sector", perm: "view_area_dashboard" },
         { id: "Live-Map", label: "Live Map", icon: "🗺️", badge: "GIS", perm: "view_live_map" },
-        { id: "Smart-Route", label: "Smart Route", icon: "⚡", badge: "AI", perm: "view_smart_route" },
         { id: "Risk-Intelligence", label: "Risk Intelligence", icon: "⚠️", badge: "Local", badgeClass: "badge-danger", perm: "view_risk_intelligence" },
         { id: "Accessibility", label: "Accessibility", icon: "♿", badge: "Index", perm: "view_accessibility" },
-        { id: "Logistics", label: "Logistics", icon: "📦", badge: "Area", perm: "view_logistics" },
-        { id: "Drivers", label: "Drivers", icon: "👤", badge: "Nearby", perm: "view_drivers" },
-        { id: "Trucks", label: "Trucks", icon: "🚛", badge: "Sector", perm: "view_trucks" },
+        { id: "Weather", label: "Weather Radar", icon: "🌧️", badge: "Sector", perm: "view_weather" },
         { id: "Field-Reports", label: "Field Reports", icon: "📋", badge: "Submit", perm: "create_field_reports" },
         { id: "Verification-Center", label: "Verification Center", icon: "🛡️", badge: "Area Review", badgeClass: "badge-amber", perm: "verify_area_images" },
-        { id: "Area-Intelligence", label: "Area Intelligence", icon: "📍", badge: "Meghalaya", perm: "view_area_intelligence" }
+        { id: "Alerts", label: "Alerts", icon: "🚨", badge: "Live", badgeClass: "badge-danger", perm: "view_alerts" },
+        { id: "Area-Intelligence", label: "Area Intelligence", icon: "📍", badge: "Local", perm: "view_area_intelligence" },
+        { id: "Nearby-Vehicles", label: "Nearby Vehicles", icon: "🚚", badge: "Nearby", perm: "view_drivers" },
+        { id: "Shipments", label: "Shipments", icon: "📦", badge: "Track", perm: "view_shipments" }
     ],
 
     logistics: [
         { id: "Dashboard", label: "Dashboard", icon: "🏠", badge: "Freight", perm: "view_logistics_dashboard" },
         { id: "Live-Map", label: "Live Map", icon: "🗺️", badge: "GIS", perm: "view_live_map" },
-        { id: "Smart-Route", label: "Smart Route", icon: "⚡", badge: "AI", perm: "view_smart_route" },
         { id: "Risk-Intelligence", label: "Risk Intelligence", icon: "⚠️", badge: "Routes", perm: "view_risk_intelligence" },
         { id: "Accessibility", label: "Accessibility", icon: "♿", badge: "Index", perm: "view_accessibility" },
+        { id: "Weather", label: "Weather Radar", icon: "🌧️", badge: "Corridor", perm: "view_weather" },
         { id: "Shipments", label: "Shipments", icon: "🚚", badge: "Track", perm: "manage_shipments" },
         { id: "Drivers", label: "Drivers", icon: "👤", badge: "Available", perm: "view_drivers" },
         { id: "Trucks", label: "Trucks", icon: "🚛", badge: "Fleet", perm: "view_trucks" },
         { id: "Transport-Requests", label: "Transportation Requests", icon: "📦", badge: "New", badgeClass: "badge-green", perm: "create_transport_requests" },
-        { id: "Route-Planning", label: "Route Planning", icon: "🗺️", badge: "Compare", perm: "plan_routes" },
-        { id: "My-Requests", label: "My Requests", icon: "📑", badge: "3 Active", perm: "view_my_requests" }
+        { id: "Alerts", label: "Alerts", icon: "🚨", badge: "Road", badgeClass: "badge-danger", perm: "view_alerts" },
+        { id: "My-Requests", label: "My Requests", icon: "📑", badge: "Active", perm: "view_my_requests" }
     ],
 
     driver: [
         { id: "Dashboard", label: "Dashboard", icon: "🏠", badge: "Cockpit", perm: "view_driver_dashboard" },
-        { id: "Road-Map", label: "Road Map", icon: "🗺️", badge: "NE GIS", perm: "view_road_map" },
-        { id: "My-Route", label: "My Route", icon: "🧭", badge: "NH-6", badgeClass: "badge-green", perm: "view_my_route" },
-        { id: "Road-Alerts", label: "Road Alerts", icon: "🚨", badge: "Urgent", badgeClass: "badge-danger", perm: "view_road_alerts" },
-        { id: "Weather", label: "Weather", icon: "🌧️", badge: "Rain", perm: "view_weather" },
+        { id: "Live-Map", label: "Live Map", icon: "🗺️", badge: "NE GIS", perm: "view_live_map" },
+        { id: "My-Route", label: "My Route", icon: "🧭", badge: "Active", badgeClass: "badge-green", perm: "view_my_route" },
+        { id: "Road-Alerts", label: "Road Alerts", icon: "🚨", badge: "Live", badgeClass: "badge-danger", perm: "view_road_alerts" },
+        { id: "Weather", label: "Weather", icon: "🌧️", badge: "NER", perm: "view_weather" },
         { id: "Risk-Intelligence", label: "Risk Intelligence", icon: "⚠️", badge: "Hill Pass", perm: "view_risk_intelligence" },
         { id: "Transport-Requests", label: "Transport Requests", icon: "📦", badge: "Assign", perm: "view_transport_requests" },
-        { id: "My-Truck", label: "My Truck", icon: "🚛", badge: "VX-104", perm: "view_my_truck" },
+        { id: "My-Truck", label: "My Truck", icon: "🚛", badge: "Status", perm: "view_my_truck" },
         { id: "Nearby-Drivers", label: "Nearby Drivers", icon: "📡", badge: "Radar", perm: "view_nearby_drivers" },
         { id: "Area-Field-Officer", label: "Area Field Officer", icon: "👮", badge: "Contact", perm: "contact_field_officer" },
         { id: "Report-Issue", label: "Report Issue", icon: "⚠️", badge: "+ Photo", badgeClass: "badge-amber", perm: "report_road_issue" }
@@ -101,7 +104,7 @@ function switchTab(sectionId, event) {
     if (!isAllowed && sectionId !== "Dashboard") {
         console.warn(`[SECURITY 403] Role '${roleKey}' attempted unauthorized tab access: ${sectionId}`);
         if (typeof showToast === 'function') {
-            showToast(`Access Denied: Section '${sectionId}' is not accessible for ${ROLE_PROFILES[roleKey]?.label || roleKey}.`);
+            showToast(`Access Denied: Section '${sectionId}' is not accessible for your role.`);
         }
         sectionId = "Dashboard";
     }
@@ -112,9 +115,13 @@ function switchTab(sectionId, event) {
 
     // If Live-Map or Road-Map is clicked, show Dashboard where the interactive Leaflet map lives
     const isMapTab = (sectionId === "Live-Map" || sectionId === "Road-Map");
-    const activeSectionId = isMapTab ? "Dashboard" : sectionId;
+    let activeSectionId = isMapTab ? "Dashboard" : sectionId;
+    if (sectionId === "Alerts") activeSectionId = "Road-Alerts";
+    if (sectionId === "Reports") activeSectionId = "Field-Reports";
+    if (sectionId === "Nearby-Vehicles") activeSectionId = "Nearby-Drivers";
+    if (sectionId === "Logistics") activeSectionId = "Trucks";
 
-    // Activate target section (supports both 'Smart-Route' and 'Smart Route')
+    // Activate target section
     const targetSection = document.getElementById(`section-${activeSectionId}`)
         || document.getElementById(`section-${activeSectionId.replace(/-/g, " ")}`)
         || document.getElementById(`section-${activeSectionId.replace(/ /g, "-")}`)
@@ -138,17 +145,33 @@ function switchTab(sectionId, event) {
     // Update URL Hash
     const slug = sectionId.toLowerCase();
     try {
-        history.replaceState(null, null, `#${slug}`);
+        const currentHash = window.location.hash || "";
+        if (currentHash.includes("?") && (sectionId === "Live-Map" || sectionId === "Dashboard")) {
+            const q = currentHash.split("?")[1];
+            history.replaceState(null, null, `#${slug}?${q}`);
+        } else {
+            history.replaceState(null, null, `#${slug}`);
+        }
     } catch (e) {
         window.location.hash = slug;
     }
 
-    // Smooth scroll to top or scroll to map if map tab
+    // Scroll to map immediately if map tab
     if (isMapTab) {
-        setTimeout(() => {
-            const mapBox = document.querySelector(".map-box");
+        if (typeof scrollToLiveMap === "function") {
+            scrollToLiveMap();
+        } else {
+            const mapBox = document.querySelector(".map-box") || document.getElementById("ne-map");
             if (mapBox) {
-                mapBox.scrollIntoView({ behavior: "smooth", block: "start" });
+                mapBox.scrollIntoView({ behavior: "auto", block: "start" });
+            }
+        }
+        setTimeout(() => {
+            if (typeof scrollToLiveMap === "function") {
+                scrollToLiveMap();
+            }
+            if (typeof processPendingAlertLocate === "function") {
+                processPendingAlertLocate();
             }
         }, 100);
     } else {
@@ -171,6 +194,15 @@ function switchTab(sectionId, event) {
 // Triggers module-specific rendering when tabs are opened
 function handleTabSpecificActivation(tabId) {
     switch (tabId) {
+        case "Dashboard":
+            const activeUser = typeof getActiveUser === 'function' ? getActiveUser() : null;
+            if (activeUser && typeof updateDashboardLiveKPIs === 'function') {
+                updateDashboardLiveKPIs(activeUser.role);
+            }
+            if (typeof loadDashboardLiveAlerts === 'function') {
+                loadDashboardLiveAlerts();
+            }
+            break;
         case "Verification-Center":
             if (typeof renderVerificationQueue === 'function') renderVerificationQueue();
             break;
@@ -192,10 +224,8 @@ function handleTabSpecificActivation(tabId) {
             break;
         case "Trucks":
         case "My-Truck":
+        case "Logistics":
             if (typeof renderTrucksFleet === 'function') renderTrucksFleet();
-            break;
-        case "Route-Planning":
-            if (typeof renderRoutePlanningTradeoffs === 'function') renderRoutePlanningTradeoffs();
             break;
         case "Field-Officers":
             if (typeof renderFieldOfficersRoster === 'function') renderFieldOfficersRoster();
@@ -215,22 +245,63 @@ function handleTabSpecificActivation(tabId) {
         case "Area-Intelligence":
             if (typeof renderAreaIntelligenceView === 'function') renderAreaIntelligenceView();
             break;
+        case "Risk-Intelligence":
+            if (typeof renderRiskIntelligence === 'function') renderRiskIntelligence();
+            break;
+        case "Road-Alerts":
+            if (typeof renderRoadAlerts === 'function') renderRoadAlerts();
+            break;
+        case "Weather":
+            if (typeof renderWeatherView === 'function') renderWeatherView();
+            break;
+        case "Field-Reports":
+            if (typeof renderFieldReportsView === 'function') renderFieldReportsView();
+            if (typeof loadRecentFieldReports === 'function') loadRecentFieldReports();
+            break;
+        case "Accessibility":
+            if (typeof renderAccessibilityView === 'function') renderAccessibilityView();
+            break;
+
     }
 }
 
 // Synchronize Tab from URL Hash on initial load / back button
 function syncTabFromHash() {
-    const hash = (window.location.hash || "").replace("#", "").toLowerCase();
-    if (!hash) return;
+    const rawHash = (window.location.hash || "").replace(/^#/, "");
+    if (!rawHash) return;
 
-    const user = getActiveUser();
+    const [hashPath, hashQuery] = rawHash.split("?");
+    const cleanHash = (hashPath || "").toLowerCase();
+
+    // Check for alert ID parameter to support deep linking / fresh page load
+    const searchParams = new URLSearchParams(hashQuery || window.location.search);
+    const alertIdParam = searchParams.get("alertId") || searchParams.get("locateAlert") || searchParams.get("alert");
+    if (alertIdParam) {
+        try {
+            sessionStorage.setItem("nextra_pending_alert", JSON.stringify({
+                alertId: parseInt(alertIdParam, 10),
+                zoom: 13,
+                openPopup: true
+            }));
+        } catch (e) {}
+    }
+
+    const user = typeof getActiveUser === 'function' ? getActiveUser() : null;
     const roleKey = user ? user.role : "admin";
     const allowed = ROLE_SIDEBAR_MENUS[roleKey] || ROLE_SIDEBAR_MENUS.admin;
 
-    const match = allowed.find(item => item.id.toLowerCase() === hash || item.id.toLowerCase().replace(/-/g, "") === hash.replace(/-/g, ""));
+    const match = allowed.find(item => item.id.toLowerCase() === cleanHash || item.id.toLowerCase().replace(/-/g, "") === cleanHash.replace(/-/g, ""));
     if (match) {
         switchTab(match.id);
+    } else if (cleanHash === "live-map" || cleanHash === "livemap" || cleanHash === "map") {
+        switchTab("Live-Map");
     } else {
         switchTab("Dashboard");
+    }
+
+    if (alertIdParam && typeof processPendingAlertLocate === 'function') {
+        setTimeout(() => {
+            processPendingAlertLocate();
+        }, 200);
     }
 }

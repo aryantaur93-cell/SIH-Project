@@ -1,19 +1,27 @@
 /**
  * NEXTRA - Role-Based Access Control & Centralized Permission System
  * Defines operational permissions for Admin, Field Officer, Logistics, and Driver.
+ *
+ * ROLE_PROFILES contains two sets of demo credentials:
+ *   Primary   — new demo accounts used by login.html (admin@nextra.demo etc.)
+ *   Legacy    — old accounts for the in-dashboard role-switcher (admin@ner.gov.in etc.)
  */
 
 // Role definitions and operational designations
 const ROLE_PROFILES = {
     admin: {
         key: "admin",
-        label: "Central Command Administrator",
+        label: "Admin",
         title: "Regional Multi-Modal Command Console",
         initials: "ADM",
-        email: "admin@ner.gov.in",
-        password: "admin",
+        // Primary demo email (used by login.html)
+        email: "admin@nextra.demo",
+        password: "Admin@123",
+        // Legacy email kept for in-dashboard role-switcher
+        legacyEmail: "admin@ner.gov.in",
+        legacyPassword: "admin",
         assignedArea: "ALL",
-        areaName: "Entire North East Region (All 8 States)",
+        areaName: "Entire Northeast Region",
         badgeClass: "badge-admin",
         description: "Full administrative oversight across all 8 North Eastern states, user management, global verification, and multi-modal corridors."
     },
@@ -21,36 +29,48 @@ const ROLE_PROFILES = {
         key: "field_officer",
         label: "Field Officer",
         title: "Ground Truth & Infrastructure Clearance Desk",
-        initials: "FO",
-        email: "field@ner.gov.in",
-        password: "field",
-        assignedArea: "MEGHALAYA",
-        areaName: "Meghalaya Sector (NH-6 Hill Corridor)",
+        initials: "AM",
+        // Primary demo email
+        email: "officer@nextra.demo",
+        password: "Officer@123",
+        // Legacy
+        legacyEmail: "field@ner.gov.in",
+        legacyPassword: "field",
+        assignedArea: "ASSAM",
+        areaName: "Assam Sector",
         badgeClass: "badge-field",
-        description: "Operational field oversight for Meghalaya corridor, BRO taskforce coordination, road blockages, and ground truth photo verification."
+        description: "Operational field oversight, BRO taskforce coordination, road blockages, and ground truth photo verification for the assigned sector."
     },
     logistics: {
         key: "logistics",
-        label: "Freight Operations Coordinator",
+        label: "Logistics",
         title: "Freight Dispatch & Mountain Fleet Logistics",
-        initials: "LOG",
-        email: "logistics@ner.gov.in",
-        password: "logistics",
+        initials: "RV",
+        // Primary demo email
+        email: "logistics@nextra.demo",
+        password: "Logistics@123",
+        // Legacy
+        legacyEmail: "logistics@ner.gov.in",
+        legacyPassword: "logistics",
         assignedArea: "ALL",
-        areaName: "Regional Freight Grid (Multi-State Corridors)",
+        areaName: "Assam & Meghalaya",
         badgeClass: "badge-logistics",
         description: "Transportation dispatch, truck/driver matching, freight request fulfillment, consignment tracking, and route tradeoff comparisons."
     },
     driver: {
         key: "driver",
-        label: "Commercial Fleet Operator",
+        label: "Driver",
         title: "In-Cab Vehicle Telemetry & Highway Cockpit",
-        initials: "DRV",
-        email: "driver@ner.gov.in",
-        password: "driver",
-        assignedArea: "MEGHALAYA",
-        areaName: "NH-6 Guwahati → Shillong Transit Corridor",
-        assignedTruck: "VX-104",
+        initials: "AK",
+        // Primary demo email
+        email: "driver@nextra.demo",
+        password: "Driver@123",
+        // Legacy
+        legacyEmail: "driver@ner.gov.in",
+        legacyPassword: "driver",
+        assignedArea: "ASSAM",
+        areaName: "Assam",
+        assignedTruck: "NEXTRA-TRUCK-01",
         badgeClass: "badge-driver",
         description: "Live cockpit navigation for commercial hill routes, weather alerts, nearby driver communication, and incident reporting with photo evidence."
     }
@@ -64,6 +84,7 @@ const PERMISSIONS = {
         'view_smart_route',
         'view_risk_intelligence',
         'view_accessibility',
+        'view_weather',
         'view_logistics',
         'manage_shipments',
         'manage_drivers',
@@ -81,6 +102,7 @@ const PERMISSIONS = {
         'view_smart_route',
         'view_risk_intelligence',
         'view_accessibility',
+        'view_weather',
         'view_logistics',
         'view_drivers',
         'view_trucks',
@@ -94,6 +116,7 @@ const PERMISSIONS = {
         'view_smart_route',
         'view_risk_intelligence',
         'view_accessibility',
+        'view_weather',
         'manage_shipments',
         'view_drivers',
         'view_trucks',

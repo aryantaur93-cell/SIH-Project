@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In — NEXTRA™ | NE Region X-Intelligent Transport & Routing Assistant</title>
+    <meta name="description" content="Sign in to NEXTRA — AI-powered logistics, routing, risk and accessibility intelligence for the North Eastern Region.">
+    <meta name="author" content="VoidX™">
+    <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+    <link rel="stylesheet" href="css/auth.css">
+</head>
+
+<body>
+
+<div class="auth-page" id="auth-page">
+
+    <!-- ====================================================
+         LEFT — NEXTRA Visual Panel
+         ==================================================== -->
+    <div class="auth-visual">
+        <!-- Decorative orbits -->
+        <div class="auth-visual-orbit orbit-1"></div>
+        <div class="auth-visual-orbit orbit-2"></div>
+
+        <!-- Floating state labels -->
+        <div class="auth-visual-states">
+            <span>ASSAM</span>
+            <span>MEGHALAYA</span>
+            <span>MANIPUR</span>
+            <span>ARUNACHAL</span>
+            <span>NAGALAND</span>
+            <span>MIZORAM</span>
+            <span>TRIPURA</span>
+            <span>SIKKIM</span>
+        </div>
+
+        <!-- Main copy -->
+        <div class="auth-visual-copy">
+            <span class="auth-eyebrow">NEXTRA™ · VoidX™ Initiative · SIH 2026</span>
+            <h1>NE Region<br>X-Intelligent<br><em>Transport &amp; Routing.</em></h1>
+            <p class="auth-visual-desc">
+                AI-powered logistics, routing, risk and accessibility intelligence
+                for the North Eastern Region. Connecting 8 states — intelligently.
+            </p>
+            <div class="auth-visual-meta">
+                <span class="pulse-dot"></span>
+                Regional grid active &nbsp;·&nbsp; 8 states synchronized
+            </div>
+        </div>
+    </div>
+
+    <!-- ====================================================
+         RIGHT — Login Panel
+         ==================================================== -->
+    <div class="auth-panel">
+
+        <!-- Brand -->
+        <div class="auth-brand">
+            <img src="assets/nextra-icon.svg" alt="NEXTRA" class="auth-brand-icon">
+            <div class="auth-brand-text">
+                <strong>NEXTRA™</strong>
+                <span>NE Region X-Intelligent Transport &amp; Routing Assistant · <span style="color:#059669;font-weight:700;">VoidX™</span></span>
+            </div>
+        </div>
+
+        <!-- Heading -->
+        <div class="auth-heading">
+            <span class="eyebrow">Secure Workspace</span>
+            <h2>Welcome Back</h2>
+            <p>Sign in to continue to NEXTRA</p>
+        </div>
+
+        <!-- Login Form -->
+        <form class="auth-form" id="login-form" onsubmit="handleLoginSubmit(event)" novalidate>
+
+            <div class="form-group">
+                <label class="form-label" for="login-email">Email Address</label>
+                <input
+                    class="form-input"
+                    type="email"
+                    id="login-email"
+                    name="email"
+                    placeholder="your@email.com"
+                    autocomplete="email"
+                >
+                <span class="field-error" id="error-email"></span>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="login-password">Password</label>
+                <div class="password-wrap">
+                    <input
+                        class="form-input"
+                        type="password"
+                        id="login-password"
+                        name="password"
+                        placeholder="Enter your password"
+                        autocomplete="current-password"
+                    >
+                    <button type="button" class="pw-toggle" id="pw-toggle-login"
+                        onclick="togglePassword('login-password', 'pw-toggle-login')"
+                        title="Show / hide password" aria-label="Toggle password visibility">
+                        👁
+                    </button>
+                </div>
+                <span class="field-error" id="error-password"></span>
+            </div>
+
+            <!-- Global auth alert -->
+            <div class="auth-alert error" id="auth-error" role="alert"></div>
+            <div class="auth-alert success" id="auth-success" role="alert"></div>
+
+            <!-- Actions -->
+            <button class="btn-primary" type="submit" id="signin-btn">
+                Sign In <span>→</span>
+            </button>
+
+            <div class="auth-actions">
+                <button type="button" class="btn-link" onclick="goTo('forgot-password.html')">
+                    Forgot Password?
+                </button>
+                <button type="button" class="btn-link" onclick="goTo('signup.html')">
+                    Create Account
+                </button>
+            </div>
+
+        </form>
+
+        <!-- Demo Accounts -->
+        <div class="auth-divider">Demo Accounts</div>
+
+        <div class="demo-section">
+            <div class="demo-section-header">
+                <span class="demo-label">🧪 SIH Demonstration Accounts</span>
+                <span class="demo-note">Click "Use" to autofill — then press Sign In</span>
+            </div>
+            <div class="demo-accounts-grid">
+
+                <div class="demo-account-card">
+                    <div class="demo-account-role">👑 Admin</div>
+                    <div class="demo-account-name">NEXTRA Administrator</div>
+                    <div class="demo-account-email">admin@nextra.demo</div>
+                    <button class="demo-use-btn"
+                        onclick="useDemoAccount('admin@nextra.demo', 'Admin@123')">
+                        Use Demo Account
+                    </button>
+                </div>
+
+                <div class="demo-account-card">
+                    <div class="demo-account-role">🔍 Field Officer</div>
+                    <div class="demo-account-name">Arjun Mehta</div>
+                    <div class="demo-account-email">officer@nextra.demo</div>
+                    <button class="demo-use-btn"
+                        onclick="useDemoAccount('officer@nextra.demo', 'Officer@123')">
+                        Use Demo Account
+                    </button>
+                </div>
+
+                <div class="demo-account-card">
+                    <div class="demo-account-role">📦 Logistics</div>
+                    <div class="demo-account-name">Rahul Verma</div>
+                    <div class="demo-account-email">logistics@nextra.demo</div>
+                    <button class="demo-use-btn"
+                        onclick="useDemoAccount('logistics@nextra.demo', 'Logistics@123')">
+                        Use Demo Account
+                    </button>
+                </div>
+
+                <div class="demo-account-card">
+                    <div class="demo-account-role">🚚 Driver</div>
+                    <div class="demo-account-name">Aman Kumar</div>
+                    <div class="demo-account-email">driver@nextra.demo</div>
+                    <button class="demo-use-btn"
+                        onclick="useDemoAccount('driver@nextra.demo', 'Driver@123')">
+                        Use Demo Account
+                    </button>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="auth-footer">
+            <span>© 2026 NEXTRA™ · A <strong>VoidX™</strong> Platform</span>
+            <span>SIH 2026 · NER Intelligence</span>
+        </div>
+
+    </div><!-- /auth-panel -->
+
+</div><!-- /auth-page -->
+
+<!-- Scripts -->
+<script src="data/demo-users.js"></script>
+<script src="js/session.js"></script>
+<script src="js/api.js"></script>
+<script>
+    // ── Redirect if already logged in ──────────────────────
+    if (typeof NextraAuth !== "undefined" && NextraAuth.isAuthenticated()) {
+        window.location.replace("index.html");
+    }
+
+    // ── Toggle password visibility ─────────────────────────
+    function togglePassword(inputId, btnId) {
+        const input = document.getElementById(inputId);
+        const btn   = document.getElementById(btnId);
+        if (!input) return;
+        if (input.type === "password") {
+            input.type = "text";
+            if (btn) btn.textContent = "🙈";
+        } else {
+            input.type = "password";
+            if (btn) btn.textContent = "👁";
+        }
+    }
+
+    // ── Navigate to another auth page ─────────────────────
+    function goTo(page) {
+        window.location.href = page;
+    }
+
+    // ── Fill demo credentials (DO NOT auto-submit) ─────────
+    function useDemoAccount(email, password) {
+        document.getElementById("login-email").value    = email;
+        document.getElementById("login-password").value = password;
+        clearErrors();
+        document.getElementById("signin-btn")?.focus();
+    }
+
+    // ── Validation helpers ─────────────────────────────────
+    function clearErrors() {
+        document.getElementById("error-email").textContent    = "";
+        document.getElementById("error-password").textContent = "";
+        const errAlert = document.getElementById("auth-error");
+        const sucAlert = document.getElementById("auth-success");
+        if (errAlert) { errAlert.textContent = ""; errAlert.classList.remove("visible"); }
+        if (sucAlert) { sucAlert.textContent = ""; sucAlert.classList.remove("visible"); }
+    }
+
+    function showError(msg) {
+        const el = document.getElementById("auth-error");
+        if (el) {
+            el.textContent = msg;
+            el.classList.add("visible");
+        }
+    }
+
+    function showSuccess(msg) {
+        const el = document.getElementById("auth-success");
+        if (el) {
+            el.textContent = msg;
+            el.classList.add("visible");
+        }
+    }
+
+    function setFieldError(fieldId, msg) {
+        const el = document.getElementById("error-" + fieldId);
+        if (el) el.textContent = msg;
+        const input = document.getElementById("login-" + fieldId);
+        if (input) input.classList.add("error");
+    }
+
+    function clearFieldError(fieldId) {
+        const el = document.getElementById("error-" + fieldId);
+        if (el) el.textContent = "";
+        const input = document.getElementById("login-" + fieldId);
+        if (input) input.classList.remove("error");
+    }
+
+    // Real-time clear on input
+    document.getElementById("login-email").addEventListener("input", () => clearFieldError("email"));
+    document.getElementById("login-password").addEventListener("input", () => clearFieldError("password"));
+
+    // ── Main Login Handler (Connected to FastAPI Backend) ──
+    async function handleLoginSubmit(event) {
+        event.preventDefault();
+        clearErrors();
+
+        const email    = document.getElementById("login-email").value.trim();
+        const password = document.getElementById("login-password").value;
+
+        let valid = true;
+
+        if (!email) {
+            setFieldError("email", "Please enter your email.");
+            valid = false;
+        } else if (!isValidEmail(email)) {
+            setFieldError("email", "Please enter a valid email address.");
+            valid = false;
+        }
+
+        if (!password) {
+            setFieldError("password", "Please enter your password.");
+            valid = false;
+        }
+
+        if (!valid) return;
+
+        const signinBtn = document.getElementById("signin-btn");
+        if (signinBtn) {
+            signinBtn.disabled = true;
+            signinBtn.textContent = "Authenticating...";
+        }
+
+        try {
+            // Authenticate directly against FastAPI backend
+            const authResult = await NextraAuth.login(email, password);
+            const user = authResult.user;
+
+            // Also synchronize legacy session storage for backward compatibility
+            if (typeof createSession === "function") {
+                createSession({
+                    user_id: user.id || user.user_id,
+                    name: user.name,
+                    email: user.email,
+                    role: user.role,
+                    assigned_area: user.assigned_state || "ALL",
+                    area_name: user.assigned_state || "All NE",
+                    status: user.status || "ACTIVE"
+                });
+            }
+
+            const roleLabels = {
+                admin: "Admin",
+                field_officer: "Field Officer",
+                logistics: "Logistics",
+                driver: "Driver"
+            };
+            const roleDisplay = roleLabels[user.role] || user.role;
+
+            showSuccess(`Login successful! Authenticated as ${user.name} (${roleDisplay}). Redirecting...`);
+
+            // Role-based destination redirect
+            setTimeout(() => {
+                window.location.href = "index.html#Dashboard";
+            }, 600);
+
+        } catch (err) {
+            console.error("[Login Error]", err);
+            showError(err.message || "Invalid email or password.");
+            const pwInput = document.getElementById("login-password");
+            if (pwInput) {
+                pwInput.value = "";
+                pwInput.focus();
+            }
+        } finally {
+            if (signinBtn) {
+                signinBtn.disabled = false;
+                signinBtn.innerHTML = "Sign In <span>→</span>";
+            }
+        }
+    }
+
+    function isValidEmail(email) {
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    }
+</script>
+
+</body>
+</html>

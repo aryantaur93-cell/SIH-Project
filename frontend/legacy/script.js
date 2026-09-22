@@ -26,8 +26,8 @@ let demoFlowStep = 0;
 // Role Profiles Configuration (Generic Operational Designations)
 const ROLE_ACCESS = {
     admin: {
-        label: "Central Command Administrator",
-        name: "Central Command Administrator",
+        label: "Admin",
+        name: "Admin",
         initials: "ADM",
         email: "admin@ner.gov.in",
         password: "admin",
@@ -40,9 +40,9 @@ const ROLE_ACCESS = {
         ]
     },
     logistics: {
-        label: "Freight Operations Coordinator",
-        name: "Freight Operations Coordinator",
-        initials: "FOC",
+        label: "Logistics",
+        name: "Logistics",
+        initials: "LOG",
         email: "logistics@ner.gov.in",
         password: "logistics",
         title: "Freight Dispatch & Mountain Route Optimization",
@@ -54,8 +54,8 @@ const ROLE_ACCESS = {
         ]
     },
     driver: {
-        label: "Commercial Fleet Operator",
-        name: "Commercial Fleet Operator",
+        label: "Driver",
+        name: "Driver",
         initials: "DRV",
         email: "driver@ner.gov.in",
         password: "driver",

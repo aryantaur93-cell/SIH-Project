@@ -16,6 +16,8 @@
 
     <!-- Leaflet.js Real Map CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"/>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"/>
 
     <!-- Application Stylesheet -->
     <link rel="stylesheet" href="style.css">
@@ -26,7 +28,9 @@
     <!-- ==========================================================================
          NER AUTHENTICATION & ROLE ACCESS PORTAL (LOGIN SCREEN)
          ========================================================================== -->
-    <div class="login-screen" id="login-screen">
+    <!-- Login overlay kept for backward-compat with role-switcher; hidden by default.
+         On load, auth.js redirects to login.html if no session exists. -->
+    <div class="login-screen hidden" id="login-screen">
         <div class="login-visual">
             <div class="login-orbit orbit-one"></div>
             <div class="login-orbit orbit-two"></div>
@@ -65,10 +69,10 @@
             <form id="login-form" class="login-form" onsubmit="handleLogin(event)">
                 <label for="login-role">Operational role / designation</label>
                 <select id="login-role" class="form-select">
-                    <option value="admin">👑 Central Command Administrator</option>
+                    <option value="admin">👑 Admin</option>
                     <option value="field_officer">🔍 Field Officer</option>
-                    <option value="logistics">📦 Freight Operations Coordinator</option>
-                    <option value="driver">🚚 Commercial Fleet Operator</option>
+                    <option value="logistics">📦 Logistics</option>
+                    <option value="driver">🚚 Driver</option>
                 </select>
 
                 <label for="login-email">Official access email</label>
@@ -122,6 +126,14 @@
                 <span class="menu-badge">Live</span>
             </button>
 
+            <button type="button" class="menu-item" onclick="switchTab('Live-Map')" id="nav-Live-Map">
+                <div class="menu-item-left">
+                    <span class="menu-icon">🗺️</span>
+                    <span>Live Map</span>
+                </div>
+                <span class="menu-badge" style="background: rgba(16,185,129,0.2); color: #34d399;">GIS</span>
+            </button>
+
             <button type="button" class="menu-item" onclick="navigateToPage('risk-intelligence.html')" id="nav-Risk Intelligence">
                 <div class="menu-item-left">
                     <span class="menu-icon">⚠️</span>
@@ -142,13 +154,6 @@
                 <span>＋</span> More tools
             </button>
             <div class="secondary-nav" id="secondary-nav">
-                <button type="button" class="menu-item" onclick="navigateToPage('smart-route.html')" id="nav-Smart Route">
-                    <div class="menu-item-left">
-                        <span class="menu-icon">🗺️</span>
-                        <span>Smart Route</span>
-                    </div>
-                    <span class="menu-badge">AI</span>
-                </button>
                 <button type="button" class="menu-item" onclick="navigateToPage('accessibility.html')" id="nav-Accessibility">
                     <div class="menu-item-left">
                         <span class="menu-icon">♿</span>
@@ -228,23 +233,46 @@
                 <div class="role-selector-chip">
                     <span style="font-size: 12px; color: var(--text-muted); font-weight: 600;">Role:</span>
                     <select id="role-select" class="role-dropdown" onchange="switchRole(this.value)">
-                        <option value="admin">👑 Central Command Administrator</option>
+                        <option value="admin">👑 Admin</option>
                         <option value="field_officer">🔍 Field Officer</option>
-                        <option value="logistics">📦 Freight Operations Coordinator</option>
-                        <option value="driver">🚚 Commercial Fleet Operator</option>
+                        <option value="logistics">📦 Logistics</option>
+                        <option value="driver">🚚 Driver</option>
                     </select>
                 </div>
 
-                <!-- Alert Notification Button -->
-                <button type="button" class="alert-button" onclick="openAlertsModal()">
-                    🔔 Alerts <span class="alert-pill" id="unread-alert-count">3</span>
+                <!-- Notification Bell (Phase 9) -->
+                <div class="notification-bell-wrapper" id="notification-bell-wrapper">
+                    <button type="button" class="bell-button" id="notification-bell-btn" onclick="toggleNotificationDrawer(event)" aria-label="Personal Notifications" title="View personal notifications">
+                        🔔 <span class="bell-pill" id="notification-unread-count">0</span>
+                    </button>
+                    <!-- Floating Notification Drawer -->
+                    <div class="notifications-dropdown hidden" id="notifications-dropdown">
+                        <div class="notif-dropdown-header">
+                            <div>
+                                <strong>Notifications</strong>
+                                <span class="notif-count-badge" id="notif-header-unread">0 unread</span>
+                            </div>
+                            <button type="button" class="notif-mark-all-btn" onclick="handleMarkAllNotificationsRead(event)">Mark all read ✓</button>
+                        </div>
+                        <div class="notif-dropdown-list" id="notifications-dropdown-list">
+                            <div style="padding: 24px; text-align: center; color: var(--text-muted); font-size: 13px;">
+                                Loading notifications...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Regional Broadcast Alerts Button -->
+                <button type="button" class="alert-button" id="alert-status-btn" onclick="openAlertsModal()" title="View regional hazard broadcasts">
+                    🚨 Alerts <span class="alert-pill" id="unread-alert-count">0</span>
                 </button>
+
 
                 <!-- Operational Profile & Sign Out Button -->
                 <div class="user-chip" id="user-chip">
                     <span class="user-avatar" id="user-avatar">ADM</span>
                     <span>
-                        <strong id="user-name">Central Command Administrator</strong>
+                        <strong id="user-name">Admin</strong>
                         <small id="user-role-label">NEXTRA Operations Desk</small>
                     </span>
                     <button type="button" class="logout-btn" onclick="logout()" title="Sign out / Return to login screen">↪</button>
@@ -262,350 +290,12 @@
              PAGE 1: DASHBOARD (MAIN OVERVIEW)
              ========================================================================== -->
         <section id="section-Dashboard" class="section-panel active">
-            
-            <!-- STAT / KPI CARDS -->
-            <div class="cards">
-                <div class="card" onclick="switchTab('Logistics')" style="cursor: pointer;" title="Click to view fleet roster">
-                    <div class="card-top">
-                        <div class="card-title-group">
-                            <h3>Active Vehicles</h3>
-                        </div>
-                        <div class="card-icon blue">🚚</div>
-                    </div>
-                    <p class="number mono">124</p>
-                    <div class="card-footer">
-                        <span class="trend up-positive">↑ +8%</span>
-                        <span class="context-text">GPS tracked across the region</span>
-                    </div>
-                </div>
-
-                <div class="card" onclick="switchTab('Risk Intelligence')" style="cursor: pointer;" title="Click to view risk matrix">
-                    <div class="card-top">
-                        <div class="card-title-group">
-                            <h3>Accessible Routes</h3>
-                        </div>
-                        <div class="card-icon amber">⚠️</div>
-                    </div>
-                    <p class="number mono">42</p>
-                    <div class="card-footer">
-                        <span class="trend up-positive">↑ 6%</span>
-                        <span class="context-text">Open or partially open corridors</span>
-                    </div>
-                </div>
-
-                <div class="card" onclick="switchTab('Smart Route')" style="cursor: pointer;" title="Click to plan smart routes">
-                    <div class="card-top">
-                        <div class="card-title-group">
-                            <h3>At-Risk Routes</h3>
-                        </div>
-                        <div class="card-icon green">🕒</div>
-                    </div>
-                    <p class="number mono">17</p>
-                    <div class="card-footer">
-                        <span class="trend up-positive">↓ 12% faster</span>
-                        <span class="context-text">3 require immediate review</span>
-                    </div>
-                </div>
-
-                <div class="card" onclick="switchTab('Accessibility')" style="cursor: pointer;" title="Click to view accessibility index">
-                    <div class="card-top">
-                        <div class="card-title-group">
-                            <h3>Average Delay</h3>
-                        </div>
-                        <div class="card-icon purple">♿</div>
-                    </div>
-                    <p class="number mono">38<span style="font-size: 18px; color: #94a3b8;"> min</span></p>
-                    <div class="card-footer">
-                        <span class="trend warning-tag">+12 min</span>
-                        <span class="context-text">Weather and access impact</span>
-                    </div>
-                </div>
-                <div class="card" onclick="openAlertsModal()" style="cursor: pointer;" title="Click to review active alerts">
-                    <div class="card-top">
-                        <div class="card-title-group"><h3>Active Alerts</h3></div>
-                        <div class="card-icon red">🔔</div>
-                    </div>
-                    <p class="number mono">03</p>
-                    <div class="card-footer"><span class="trend warning-tag">2 urgent</span><span class="context-text">Needs response now</span></div>
-                </div>
-                <div class="card" onclick="switchTab('Field Reports')" style="cursor: pointer;" title="Click to view field reports">
-                    <div class="card-top">
-                        <div class="card-title-group"><h3>Field Reports</h3></div>
-                        <div class="card-icon gold">◉</div>
-                    </div>
-                    <p class="number mono" id="field-report-count">07</p>
-                    <div class="card-footer"><span class="trend info-tag">2 pending</span><span class="context-text">Ground truth updates</span></div>
-                </div>
+            <!-- Loading skeleton awaiting dynamic role-specific dashboard mount -->
+            <div class="dashboard-loading-skeleton" style="padding: 60px 20px; text-align: center; color: var(--text-muted);">
+                <div class="spinner-sm" style="width: 32px; height: 32px; margin: 0 auto 16px; border: 3px solid rgba(0,212,170,0.2); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
+                <h3 style="color: var(--text-main); font-size: 17px; font-weight: 700; margin-bottom: 6px;">Initializing NEXTRA Operations Command Deck...</h3>
+                <p style="font-size: 13px; color: var(--text-muted);">Synchronizing live telemetry across 8 North Eastern States...</p>
             </div>
-
-            <section class="demo-flow-panel" id="demo-flow-panel">
-                <div class="demo-flow-heading">
-                    <div><span class="eyebrow dark-eyebrow">2-minute demo scenario · simulated data</span><h2>VX-104 incident response</h2><p>Show the complete loop from a detected landslide to verified field intelligence.</p></div>
-                    <span class="demo-status" id="demo-flow-status">Ready to detect</span>
-                </div>
-                <div class="demo-flow-steps" id="demo-flow-steps">
-                    <span class="demo-step active">01 Detect</span><span>02 Predict</span><span>03 Reroute</span><span>04 Alert</span><span>05 Verify</span>
-                </div>
-                <div class="demo-flow-card" id="demo-flow-card">
-                    <div><strong>Vehicle VX-104</strong><span>Route A · Shillong → Silchar · 42 km/h</span></div>
-                    <div class="demo-flow-alert"><b>Route A is at risk</b><span>Landslide signal detected 5.2 km ahead on NH-6 Sonapur.</span></div>
-                    <button type="button" class="btn-primary-large demo-flow-button" onclick="advanceDemoFlow()" id="demo-flow-button">Run AI risk analysis <span>→</span></button>
-                </div>
-            </section>
-
-            <!-- INTELLIGENCE PULSE & FORECAST GRID -->
-            <div class="advanced-monitoring" id="advanced-monitoring">
-            <div class="intelligence-grid">
-                <div class="intelligence-panel">
-                    <div class="intelligence-heading">
-                        <div>
-                            <span class="eyebrow dark-eyebrow">Live access pulse</span>
-                            <h2>Corridor Accessibility</h2>
-                            <p>Road, bridge and mountain-pass conditions from drivers and field teams.</p>
-                        </div>
-                        <span class="live-tag"><span class="live-dot"></span> Updating</span>
-                    </div>
-                    <div class="accessibility-list" id="live-accessibility-list"></div>
-                    <button type="button" class="text-link" onclick="switchTab('Accessibility')">Open regional accessibility index <span>→</span></button>
-                </div>
-
-                <div class="intelligence-panel forecast-panel">
-                    <div class="intelligence-heading">
-                        <div>
-                            <span class="eyebrow dark-eyebrow">Forecast engine</span>
-                            <h2>Risk Predictions</h2>
-                            <p>Early signals for the next 24 hours. Confirm before dispatch.</p>
-                        </div>
-                        <span class="forecast-confidence">84% confidence</span>
-                    </div>
-                    <div class="forecast-list" id="risk-forecast-list"></div>
-                    <button type="button" class="text-link" onclick="switchTab('Risk Intelligence')">Open full risk matrix <span>→</span></button>
-                </div>
-            </div>
-
-            <!-- DRIVER SAFETY CHANNEL -->
-            <div class="driver-alerts-panel">
-                <div class="intelligence-heading">
-                    <div>
-                        <span class="eyebrow dark-eyebrow">Driver safety channel</span>
-                        <h2>Live Notifications for Active Vehicles</h2>
-                        <p>Urgent route changes and weather alerts pushed to drivers on the corridor.</p>
-                    </div>
-                    <span class="unread-driver-count" id="driver-unread-count">3 unread</span>
-                </div>
-                <div class="driver-alert-list" id="driver-alert-list"></div>
-            </div>
-            </div>
-
-            <!-- REAL MAP + ALERT PANEL GRID -->
-            <div class="content-grid">
-                
-                <!-- MAP CONTAINER -->
-                <div class="map-box">
-                    <div class="map-header">
-                        <div class="map-title">
-                            <h2>🗺️ NEXTRA live operations map</h2>
-                            <p>Interactive geographic GIS view of Assam, Meghalaya, Arunachal Pradesh, Nagaland, Manipur, Mizoram, Tripura & Sikkim</p>
-                        </div>
-
-                        <!-- Quick State Focus Filter Chips -->
-                        <div class="state-selector-bar">
-                            <button type="button" class="state-chip active" onclick="focusState('ALL')">All NE</button>
-                            <button type="button" class="state-chip" onclick="focusState('ASSAM')">Assam</button>
-                            <button type="button" class="state-chip" onclick="focusState('MEGHALAYA')">Meghalaya</button>
-                            <button type="button" class="state-chip" onclick="focusState('ARUNACHAL')">Arunachal</button>
-                            <button type="button" class="state-chip" onclick="focusState('NAGALAND')">Nagaland</button>
-                            <button type="button" class="state-chip" onclick="focusState('MANIPUR')">Manipur</button>
-                            <button type="button" class="state-chip" onclick="focusState('MIZORAM')">Mizoram</button>
-                            <button type="button" class="state-chip" onclick="focusState('TRIPURA')">Tripura</button>
-                            <button type="button" class="state-chip" onclick="focusState('SIKKIM')">Sikkim</button>
-                        </div>
-                    </div>
-
-                    <!-- Leaflet Real Map Canvas -->
-                    <div class="map-wrapper">
-                        <div id="ne-map"></div>
-
-                        <!-- In-Map Overlays -->
-                        <div class="map-overlay-controls">
-                            <button type="button" class="map-control-btn active" id="btn-toggle-fleet" onclick="toggleMapFleet()" title="Toggle live vehicle markers">
-                                🚚 Fleet (<span id="fleet-count-chip">4</span>)
-                            </button>
-                            <button type="button" class="map-control-btn active" id="btn-toggle-hazards" onclick="toggleMapHazards()" title="Toggle hazard zones">
-                                ⚠️ Hazards
-                            </button>
-                            <button type="button" class="map-control-btn" id="btn-toggle-routes" onclick="toggleAlternateRoutesOnMap()" title="Show weather-aware alternate routes">
-                                🛣️ Alternate routes
-                            </button>
-                            <button type="button" class="map-control-btn" id="btn-toggle-weather" onclick="toggleMapWeather()" title="Show weather and climate conditions">
-                                🌦️ Weather & climate
-                            </button>
-                            <button type="button" class="map-control-btn" onclick="cycleMapLayer()" title="Switch Satellite / Terrain / Dark map">
-                                🛰️ Tiles
-                            </button>
-                            <button type="button" class="map-control-btn" onclick="resetMapView()" title="Reset view to whole NE region">
-                                🔄 Reset
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Map Footer Strip & Legend -->
-                    <div class="map-footer-strip">
-                        <div class="legend-items">
-                            <div class="legend-item">
-                                <span class="legend-badge safe"></span>
-                                <span>Safe Corridors (NH-27 / NH-10)</span>
-                            </div>
-                            <div class="legend-item">
-                                <span class="legend-badge risk"></span>
-                                <span>Caution Zone (NH-29 / Kohima)</span>
-                            </div>
-                            <div class="legend-item">
-                                <span class="legend-badge blocked"></span>
-                                <span>Blocked / Hazard (NH-6 Sonapur)</span>
-                            </div>
-                            <div class="legend-item">
-                                <span class="legend-badge fleet"></span>
-                                <span>Live GPS Telemetry Vehicles</span>
-                            </div>
-                            <div class="legend-item">
-                                <span class="legend-line alternate"></span>
-                                <span>Recommended Alternate Route</span>
-                            </div>
-                            <div class="legend-item">
-                                <span class="legend-badge weather"></span>
-                                <span>Weather / Climate Point</span>
-                            </div>
-                        </div>
-
-                        <div class="map-active-state-tag" id="map-active-state-tag">
-                            📍 Focused: <strong>Entire operating region</strong>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- AI REAL-TIME ALERT FEED -->
-                <div class="alert-box">
-                    <div class="alert-header">
-                        <h2>⚠️ AI Risk Alerts</h2>
-                        <div class="alert-header-actions"><span class="alert-count-pill" id="live-alert-count">3 Active</span><button type="button" class="mark-read-button" onclick="markAllAlertsRead()">Mark read</button></div>
-                    </div>
-
-                    <div class="alert-list" id="alert-list-container">
-                        <!-- Dynamic Alert Items -->
-                        <div class="alert-item risk-high" onclick="panToAlert(25.10, 92.35, 'NH-6 Sonapur Tunnel')">
-                            <div class="alert-item-top">
-                                <strong>Landslide & Blockage</strong>
-                                <span class="alert-severity-badge">High Risk</span>
-                            </div>
-                            <p>NH-6 Sonapur Tunnel (Meghalaya-Barak Valley corridor) mudslide. Heavy transport halted.</p>
-                            <div class="alert-item-footer">
-                                <span>Updated 4m ago</span>
-                                <span class="alert-view-btn">Locate on Map →</span>
-                            </div>
-                        </div>
-
-                        <div class="alert-item risk-medium" onclick="panToAlert(25.5788, 91.8933, 'Shillong Plateau')">
-                            <div class="alert-item-top">
-                                <strong>Heavy Rainfall Warning</strong>
-                                <span class="alert-severity-badge">Medium Risk</span>
-                            </div>
-                            <p>Shillong & Cherrapunji mountain belt experiencing 65mm/hr torrential rain. Low visibility.</p>
-                            <div class="alert-item-footer">
-                                <span>Updated 12m ago</span>
-                                <span class="alert-view-btn">Locate on Map →</span>
-                            </div>
-                        </div>
-
-                        <div class="alert-item risk-low" onclick="panToAlert(26.1445, 91.7362, 'Guwahati Bypass')">
-                            <div class="alert-item-top">
-                                <strong>High Traffic Congestion</strong>
-                                <span class="alert-severity-badge">Low Risk</span>
-                            </div>
-                            <p>NH-27 Jalukbari Inter-change, Guwahati. Heavy freight bottleneck; 25m delay estimated.</p>
-                            <div class="alert-item-footer">
-                                <span>Updated 28m ago</span>
-                                <span class="alert-view-btn">Locate on Map →</span>
-                            </div>
-                        </div>
-
-                        <div class="alert-item risk-medium" onclick="panToAlert(27.50, 92.10, 'Sela Pass')">
-                            <div class="alert-item-top">
-                                <strong>Sub-Zero Fog Alert</strong>
-                                <span class="alert-severity-badge">Caution</span>
-                            </div>
-                            <p>Sela Pass route to Tawang (Arunachal Pradesh). Icy tarmac; snow chains recommended.</p>
-                            <div class="alert-item-footer">
-                                <span>Updated 45m ago</span>
-                                <span class="alert-view-btn">Locate on Map →</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-
-            <!-- OPERATIONAL QUICK ACTIONS PANEL -->
-            <div class="quick">
-                <h2>⚡ Operational Quick Actions</h2>
-                <div class="quick-buttons">
-                    <button type="button" class="action-btn" onclick="openRoutePlannerModal()">
-                        <div class="action-icon-circle">🗺️</div>
-                        <div class="action-text">
-                            <strong>Plan Smart Route</strong>
-                            <span>Calculate mountain bypass & ETA</span>
-                        </div>
-                    </button>
-
-                    <button type="button" class="action-btn" onclick="openTrackModal()">
-                        <div class="action-icon-circle">📦</div>
-                        <div class="action-text">
-                            <strong>Track Shipment</strong>
-                            <span>Live GPS location of NE cargo</span>
-                        </div>
-                    </button>
-
-                    <button type="button" class="action-btn" onclick="switchTab('Risk Intelligence')">
-                        <div class="action-icon-circle">⚠️</div>
-                        <div class="action-text">
-                            <strong>Check Risk Matrix</strong>
-                            <span>Inspect 8-state weather & landslides</span>
-                        </div>
-                    </button>
-
-                    <button type="button" class="action-btn" onclick="switchTab('Accessibility')">
-                        <div class="action-icon-circle">♿</div>
-                        <div class="action-text">
-                            <strong>Accessibility Index</strong>
-                            <span>Analyze terrain & remote connectivity</span>
-                        </div>
-                    </button>
-                </div>
-            </div>
-
-            <!-- LIVE FLEET TELEMETRY PREVIEW TABLE -->
-            <div class="data-table-container">
-                <div class="table-header-bar">
-                    <h2>🚚 Active Freight Corridor Telemetry (Sample Fleet)</h2>
-                    <button type="button" class="action-btn-sm" onclick="switchTab('Logistics')">View All 124 Vehicles →</button>
-                </div>
-                <table class="custom-table">
-                    <thead>
-                        <tr>
-                            <th>Shipment ID</th>
-                            <th>Origin → Destination</th>
-                            <th>Cargo Type</th>
-                            <th>Corridor Highway</th>
-                            <th>Live Status</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="dashboard-fleet-tbody">
-                        <!-- Populated by JS -->
-                    </tbody>
-                </table>
-            </div>
-
         </section>
 
         <!-- ==========================================================================
@@ -717,35 +407,8 @@
              PAGE 3: RISK INTELLIGENCE MATRIX (CONNECTED VIEW)
              ========================================================================== -->
         <section id="section-Risk Intelligence" class="section-panel">
-            <!-- 8 States Risk Matrix -->
-            <div class="data-table-container">
-                <div class="table-header-bar">
-                    <div>
-                        <h2>⚠️ Regional AI Risk & Hazard Matrix</h2>
-                        <p style="font-size: 12.5px; color: var(--text-muted); margin-top: 2px;">
-                            Live monitoring of landslides, heavy precipitation, flash flood threats, and mountain pass blockades.
-                        </p>
-                    </div>
-                    <div class="table-controls">
-                        <button type="button" class="action-btn-sm active" id="btn-risk-all" onclick="filterRiskTable('ALL')">All States</button>
-                        <button type="button" class="action-btn-sm" id="btn-risk-high" onclick="filterRiskTable('HIGH')">High Risk Only</button>
-                    </div>
-                </div>
-                <table class="custom-table">
-                    <thead>
-                        <tr>
-                            <th>State</th>
-                            <th>Critical Corridors</th>
-                            <th>Weather / Precipitation</th>
-                            <th>Geological Threat</th>
-                            <th>Operational Status</th>
-                            <th>Clearance Team Contact</th>
-                        </tr>
-                    </thead>
-                    <tbody id="risk-matrix-tbody">
-                        <!-- Populated by JS -->
-                    </tbody>
-                </table>
+            <div id="risk-intelligence-container">
+                <!-- Rendered dynamically by js/risk.js from live backend /api/risks/areas -->
             </div>
         </section>
 
@@ -753,106 +416,151 @@
              PAGE 4: ACCESSIBILITY INDEX (CONNECTED VIEW)
              ========================================================================== -->
         <section id="section-Accessibility" class="section-panel">
-            <div class="topbar-greeting" style="margin-bottom: 8px;">
-                <h2 style="font-size: 18px;">♿ Regional Logistics Accessibility & Vulnerability Index</h2>
-                <p style="font-size: 13px; color: var(--text-muted);">
-                    Quantifying terrain gradient, all-weather road coverage, cold-chain availability, and emergency connectivity for hill districts.
-                </p>
+            <div class="topbar-greeting" style="margin-bottom: 8px; display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px;">
+                <div>
+                    <h2 style="font-size: 18px;">♿ Regional Logistics Accessibility &amp; Vulnerability Index</h2>
+                    <p style="font-size: 13px; color: var(--text-muted);">
+                        Quantifying real-time accessibility statuses (OPEN, PARTIALLY AFFECTED, BLOCKED, CLOSED) synchronized with road disruptions, risk engine, and weather surveillance.
+                    </p>
+                </div>
+                <div style="display: flex; gap: 6px; align-items: center; font-size: 11px; font-weight: 700;">
+                    <span style="background: #ecfdf5; color: #059669; padding: 4px 8px; border-radius: 4px; border: 1px solid #a7f3d0;">● OPEN</span>
+                    <span style="background: #fef3c7; color: #d97706; padding: 4px 8px; border-radius: 4px; border: 1px solid #fde68a;">● PARTIALLY AFFECTED</span>
+                    <span style="background: #ffedd5; color: #ea580c; padding: 4px 8px; border-radius: 4px; border: 1px solid #fed7aa;">● BLOCKED</span>
+                    <span style="background: #fee2e2; color: #dc2626; padding: 4px 8px; border-radius: 4px; border: 1px solid #fca5a5;">● CLOSED</span>
+                </div>
             </div>
 
-            <div class="access-grid">
-                <div class="access-card">
-                    <div class="access-header">
-                        <div>
-                            <strong style="font-size: 14px;">Assam Plains & Valleys</strong>
-                            <div style="font-size: 12px; color: var(--text-muted);">Brahmaputra Basin</div>
-                        </div>
-                        <div class="access-score-circle" style="border-color: #10b981; color: #10b981;">88</div>
-                    </div>
-                    <p style="font-size: 12.5px; color: var(--text-muted);">
-                        High connectivity with dual-lane NH-27. Primary vulnerability is monsoon river flooding in lower floodplains.
-                    </p>
-                    <div>
-                        <div style="display: flex; justify-content: space-between; font-size: 11.5px; font-weight: 600;">
-                            <span>All-Weather Roads</span>
-                            <span>92%</span>
-                        </div>
-                        <div class="progress-container">
-                            <div class="progress-fill" style="width: 92%; background: #10b981;"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="access-card">
-                    <div class="access-header">
-                        <div>
-                            <strong style="font-size: 14px;">Meghalaya Plateau</strong>
-                            <div style="font-size: 12px; color: var(--text-muted);">Khasi & Jaintia Hills</div>
-                        </div>
-                        <div class="access-score-circle" style="border-color: #f59e0b; color: #f59e0b;">64</div>
-                    </div>
-                    <p style="font-size: 12.5px; color: var(--text-muted);">
-                        Steep slope gradients and high rainfall in Cherrapunji-Mawsynram corridor. NH-6 requires continuous rockfall monitoring.
-                    </p>
-                    <div>
-                        <div style="display: flex; justify-content: space-between; font-size: 11.5px; font-weight: 600;">
-                            <span>All-Weather Roads</span>
-                            <span>68%</span>
-                        </div>
-                        <div class="progress-container">
-                            <div class="progress-fill" style="width: 68%; background: #f59e0b;"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="access-card">
-                    <div class="access-header">
-                        <div>
-                            <strong style="font-size: 14px;">Arunachal High Altitude</strong>
-                            <div style="font-size: 12px; color: var(--text-muted);">Tawang & Dibang Frontier</div>
-                        </div>
-                        <div class="access-score-circle" style="border-color: #ef4444; color: #ef4444;">48</div>
-                    </div>
-                    <p style="font-size: 12.5px; color: var(--text-muted);">
-                        Snowbound high passes (>13,000 ft), single-lane defense corridors. Recommended for 4x4 and convoy freight only.
-                    </p>
-                    <div>
-                        <div style="display: flex; justify-content: space-between; font-size: 11.5px; font-weight: 600;">
-                            <span>All-Weather Roads</span>
-                            <span>51%</span>
-                        </div>
-                        <div class="progress-container">
-                            <div class="progress-fill" style="width: 51%; background: #ef4444;"></div>
-                        </div>
-                    </div>
+            <div class="access-grid" id="accessibility-cards-container">
+                <div style="padding: 30px; text-align: center; color: var(--text-muted); grid-column: span 3;">
+                    ⏳ Loading regional logistics accessibility indices from database...
                 </div>
             </div>
         </section>
 
-        <!-- PAGE 5: FIELD OFFICER REPORTS -->
+        <!-- PAGE 5: FIELD OFFICER & GROUND TRUTH REPORTS -->
         <section id="section-Field Reports" class="section-panel">
+            <!-- Offline Connectivity & Sync Control Bar (Phase 15) -->
+            <div id="fo-offline-status-banner" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 16px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+                <!-- Rendered dynamically by NextraOffline.renderBanner() -->
+            </div>
+
             <div class="field-page-grid">
                 <div class="planner-form-card">
-                    <span class="eyebrow dark-eyebrow">Field officer workspace</span>
-                    <h2>Submit ground verification</h2>
-                    <p class="section-lede">Capture what is actually happening on the route. This demo report updates the admin incident feed.</p>
-                    <div class="field-upload-placeholder"><span>＋</span><strong>Photo / video evidence</strong><small>Demo placeholder · attach media in production</small></div>
-                    <div class="form-group"><label for="report-location">GPS location</label><input class="form-input" id="report-location" value="25.1000° N, 92.3500° E · NH-6 Sonapur" /></div>
-                    <div class="form-group"><label for="report-type">Problem type</label><select class="form-select" id="report-type"><option>Landslide</option><option>Flood</option><option>Road Damage</option><option>Bridge Damage</option><option>Traffic Blockage</option><option>Other</option></select></div>
-                    <div class="form-group"><label for="report-severity">Severity</label><select class="form-select" id="report-severity"><option>High</option><option>Medium</option><option>Low</option></select></div>
-                    <div class="form-group"><label for="report-description">Description</label><textarea class="form-input report-textarea" id="report-description">Debris covers both lanes. Heavy vehicles cannot pass. Clearance team required.</textarea></div>
-                    <button type="button" class="btn-primary-large" onclick="submitFieldReport()">Submit verified report <span>→</span></button>
+                    <span class="eyebrow dark-eyebrow">Field Officer Command</span>
+                    <h2>Transmit Ground Hazard Evidence</h2>
+                    <p class="section-lede">Capture physical road blockages and slope failures. Reports save locally with status <strong>SYNC PENDING</strong> if offline, and auto-upload when reconnected.</p>
+
+                    <form id="fo-report-form" onsubmit="handleFieldOfficerReportSubmit(event)">
+                        <!-- Photo Upload Dropzone -->
+                        <div class="form-group">
+                            <label>Photo / Camera Evidence</label>
+                            <div class="file-upload-box" id="fo-file-dropzone">
+                                <input type="file" id="fo-report-photo-input" accept="image/*" onchange="handleFOPhotoSelect(event)" style="display: none;">
+                                <div class="upload-prompt" onclick="document.getElementById('fo-report-photo-input').click()">
+                                    <span style="font-size: 28px;">📷</span>
+                                    <strong>Click to attach site photo</strong>
+                                    <small>JPG, PNG, WebP · Max 10MB</small>
+                                </div>
+                                <div id="fo-photo-preview-box" style="display: none; margin-top: 8px;">
+                                    <img id="fo-photo-preview-img" src="" alt="Preview" style="max-height: 140px; border-radius: 6px; border: 1px solid var(--border-card);">
+                                    <p style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">Photo attached. Ready for backend transmit.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="fo-report-type">Incident Classification</label>
+                            <select class="form-select" id="fo-report-type">
+                                <option value="LANDSLIDE" selected>⛰️ LANDSLIDE — Landslide &amp; Slope Collapse</option>
+                                <option value="FLOOD">🌊 FLOOD — River Flash Flood / Submerged Road</option>
+                                <option value="ROAD_BLOCKAGE">🚧 ROAD_BLOCKAGE — Total Road Blockage / Fallen Trees</option>
+                                <option value="ROAD_DAMAGE">🕳️ ROAD_DAMAGE — Road Damage / Deep Potholes / Subsidence</option>
+                                <option value="BRIDGE_DAMAGE">🌉 BRIDGE_DAMAGE — Bridge / Culvert Structural Damage</option>
+                                <option value="ACCIDENT">💥 ACCIDENT — Vehicle Crash / Collision Obstruction</option>
+                                <option value="HEAVY_TRAFFIC">🛑 HEAVY_TRAFFIC — Heavy Traffic Jam / Mountain Stoppage</option>
+                                <option value="UNSAFE_ROAD">⚠️ UNSAFE_ROAD — Unsafe Road / Ice / Mudflow / Slippery</option>
+                                <option value="WEATHER">🌧️ WEATHER — Dense Mountain Fog / Zero Visibility / Storm</option>
+                                <option value="OTHER">❓ OTHER — Other Road Hazard</option>
+                            </select>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                            <div class="form-group">
+                                <label for="fo-report-severity">Severity Rating</label>
+                                <select class="form-select" id="fo-report-severity">
+                                    <option value="CRITICAL">Critical (Total Blockage)</option>
+                                    <option value="HIGH" selected>High (Single Lane Passable)</option>
+                                    <option value="MEDIUM">Medium (Caution Required)</option>
+                                    <option value="LOW">Low (Minor Advisory)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="fo-report-state">Assigned State</label>
+                                <select class="form-select" id="fo-report-state">
+                                    <option value="Assam" selected>Assam</option>
+                                    <option value="Meghalaya">Meghalaya</option>
+                                    <option value="Arunachal Pradesh">Arunachal Pradesh</option>
+                                    <option value="Nagaland">Nagaland</option>
+                                    <option value="Manipur">Manipur</option>
+                                    <option value="Mizoram">Mizoram</option>
+                                    <option value="Tripura">Tripura</option>
+                                    <option value="Sikkim">Sikkim</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="fo-report-location">Highway / Landmark Sector</label>
+                            <input class="form-input" id="fo-report-location" value="NH-6 near Sonapur Tunnel, Meghalaya" required />
+                        </div>
+
+                        <div class="form-group">
+                            <label for="fo-report-gps">GPS Coordinates</label>
+                            <input class="form-input" id="fo-report-gps" value="25.1000° N, 92.3500° E" />
+                        </div>
+
+                        <div class="form-group">
+                            <label for="fo-report-description">Field Notes &amp; Description</label>
+                            <textarea class="form-input report-textarea" id="fo-report-description" rows="3" required>Large shale boulder and mudflow covers both lanes. Heavy vehicles halted. BRO clearance team notified.</textarea>
+                        </div>
+
+                        <button type="submit" id="fo-report-submit-btn" class="btn-primary-large" style="width: 100%; justify-content: center;">
+                            🚀 Submit Field Report <span>→</span>
+                        </button>
+                    </form>
                 </div>
+
                 <div class="data-table-container field-queue">
-                    <div class="table-header-bar"><div><span class="eyebrow dark-eyebrow">Verification queue</span><h2>Assigned incidents</h2><p class="section-lede">Pending reports awaiting ground truth.</p></div><span class="status-badge status-amber">2 pending</span></div>
-                    <div class="incident-queue" id="incident-queue">
-                        <div class="incident-queue-row"><span class="queue-icon danger">!</span><div><strong>NH-6 Sonapur landslide</strong><small>Assigned to Meghalaya field team · 4 min ago</small></div><span class="status-badge status-red">High</span></div>
-                        <div class="incident-queue-row"><span class="queue-icon warning">⚠</span><div><strong>Saraighat bridge congestion</strong><small>Assigned to Assam field team · 18 min ago</small></div><span class="status-badge status-amber">Medium</span></div>
+                    <!-- Local Offline Reports Queue (Phase 15) -->
+                    <div style="border-bottom: 1px solid #e2e8f0; padding: 14px 16px; background: #fafafa;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <div>
+                                <span class="eyebrow dark-eyebrow" style="font-size: 10px;">Offline Buffer &amp; Storage</span>
+                                <h3 style="font-size: 13.5px; margin: 0; color: #1e293b;">Locally Buffered Reports</h3>
+                            </div>
+                            <span style="font-size: 11px; color: var(--text-muted);">IndexedDB Queue</span>
+                        </div>
+                        <div id="fo-offline-queue-container" style="display: flex; flex-direction: column;">
+                            <!-- Populated by NextraOffline.renderQueue() -->
+                        </div>
                     </div>
-                    <div class="data-source-box"><strong>Data sources</strong><span>GPS / vehicle data</span><span>Weather & GIS data</span><span>Road accessibility</span><span>Field reports</span><span>Disaster incident feeds</span><small>Connections are represented with simulated data in this prototype.</small></div>
+
+                    <div class="table-header-bar">
+                        <div>
+                            <span class="eyebrow dark-eyebrow">Ground Truth Feed</span>
+                            <h2>Recent Regional Reports</h2>
+                            <p class="section-lede">Live incidents verified or awaiting inspection on server.</p>
+                        </div>
+                        <button type="button" class="action-btn-sm" onclick="switchTab('Verification-Center')">Open Verification Center →</button>
+                    </div>
+                    <div id="fo-assigned-reports-container" style="padding: 12px; display: flex; flex-direction: column; gap: 10px;">
+                        <div style="text-align: center; color: var(--text-muted); padding: 20px;">Loading reports...</div>
+                    </div>
                 </div>
             </div>
         </section>
+
 
         <section id="section-Analytics" class="section-panel">
             <div class="section-title-block"><span class="eyebrow dark-eyebrow">Operations analytics</span><h2>Performance at a glance</h2><p>Summary metrics generated from simulated vehicles, routes, alerts, and field reports.</p></div>
@@ -1024,63 +732,27 @@
                 <p>Live hazards, mudslides, and weather advisories for mountain drivers along North Eastern highways.</p>
             </div>
             <div class="alert-box" style="margin-top: 10px;">
-                <div class="alert-list">
-                    <div class="alert-item risk-critical">
-                        <div class="alert-item-top">
-                            <strong>NH-6 Sonapur Tunnel Mudslide (Km 84)</strong>
-                            <span class="alert-severity-badge">Danger</span>
-                        </div>
-                        <p>Active slope debris blocking both lanes. Clearance excavators operating. Convoy pilot movement only.</p>
-                        <div class="alert-item-footer"><span>Updated 4m ago</span><span>BRO Taskforce on scene</span></div>
-                    </div>
-                    <div class="alert-item risk-medium">
-                        <div class="alert-item-top">
-                            <strong>Torrential Rainfall &amp; Hill Mist (Shillong-Cherrapunji Belt)</strong>
-                            <span class="alert-severity-badge">Caution</span>
-                        </div>
-                        <p>65 mm/hr downpour. Optical visibility reduced to 400m. Maximum 35 km/h on hill hairpin turns.</p>
-                        <div class="alert-item-footer"><span>Updated 12m ago</span><span>Fog lamps mandatory</span></div>
-                    </div>
-                    <div class="alert-item risk-low">
-                        <div class="alert-item-top">
-                            <strong>NH-27 Jalukbari Inter-change Congestion</strong>
-                            <span class="alert-severity-badge">Advisory</span>
-                        </div>
-                        <p>Heavy freight staging outside Guwahati terminal. Estimated 20m slowdown on eastbound lanes.</p>
-                        <div class="alert-item-footer"><span>Updated 28m ago</span><span>Traffic clearance active</span></div>
-                    </div>
+                <div class="alert-list" id="road-alerts-container">
+                    <p style="padding: 24px; color: var(--text-muted); text-align: center;">Loading live road alerts from database...</p>
                 </div>
             </div>
         </section>
 
         <section id="section-Weather" class="section-panel">
-            <div class="section-title-block">
-                <span class="eyebrow dark-eyebrow">Meteorological Surveillance</span>
-                <h2>🌦️ North East Regional Weather &amp; Radar Conditions</h2>
-                <p>Real-time micro-climate, precipitation gauges, and mountain pass freeze alerts across the 8 states.</p>
+            <div class="section-title-block" style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px;">
+                <div>
+                    <span class="eyebrow dark-eyebrow">Meteorological Surveillance &amp; Reactivity Engine</span>
+                    <h2>🌦️ North East Regional Weather &amp; Radar Conditions</h2>
+                    <p>Real-time micro-climate sensors, precipitation gauges, and dynamic intelligence feeding accessibility, risk, and alerts across all 8 states.</p>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <button type="button" class="btn-primary-large" style="padding: 9px 18px; font-size: 13px;" onclick="openWeatherSimulationModal()">
+                        ⚡ Simulate Weather Hazard
+                    </button>
+                </div>
             </div>
-            <div class="access-grid">
-                <div class="access-card">
-                    <div class="access-header">
-                        <div><strong>Meghalaya Plateau (Cherrapunji Belt)</strong><div style="font-size: 12px; color: var(--text-muted);">Khasi Hills</div></div>
-                        <div class="access-score-circle" style="border-color: #3b82f6; color: #3b82f6;">65</div>
-                    </div>
-                    <p style="font-size: 12.5px; color: var(--text-muted);">Torrential monsoon rainfall: 65 mm/h. Optical visibility 400m. Saturated road embankment.</p>
-                </div>
-                <div class="access-card">
-                    <div class="access-header">
-                        <div><strong>Sela Pass (Arunachal High Altitude)</strong><div style="font-size: 12px; color: var(--text-muted);">13,700 ft Frontier</div></div>
-                        <div class="access-score-circle" style="border-color: #6366f1; color: #6366f1;">-2°</div>
-                    </div>
-                    <p style="font-size: 12.5px; color: var(--text-muted);">Sub-zero fog and black ice warnings. Anti-skid tire chains required for multi-axle freight.</p>
-                </div>
-                <div class="access-card">
-                    <div class="access-header">
-                        <div><strong>Brahmaputra Valley (Assam Plains)</strong><div style="font-size: 12px; color: var(--text-muted);">Guwahati Corridor</div></div>
-                        <div class="access-score-circle" style="border-color: #10b981; color: #10b981;">28°</div>
-                    </div>
-                    <p style="font-size: 12.5px; color: var(--text-muted);">High humidity, intermittent light drizzle. High-speed dual carriageway open for all trucks.</p>
-                </div>
+            <div class="access-grid" id="weather-cards-container">
+                <p style="padding: 24px; color: var(--text-muted); text-align: center;">Loading live meteorological sensor readings from database...</p>
             </div>
         </section>
 
@@ -1121,10 +793,10 @@
                     <div class="form-group">
                         <label for="new-user-role">Platform Role</label>
                         <select id="new-user-role" class="form-select" required>
-                            <option value="admin">👑 Central Command Administrator</option>
+                            <option value="admin">👑 Admin</option>
                             <option value="field_officer">🔍 Field Officer</option>
-                            <option value="logistics">📦 Freight Operations Coordinator</option>
-                            <option value="driver">🚚 Commercial Fleet Operator</option>
+                            <option value="logistics">📦 Logistics</option>
+                            <option value="driver">🚚 Driver</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -1150,6 +822,85 @@
         </div>
     </div>
 
+    <!-- Admin Add Field Officer Modal (Phase 12) -->
+    <div class="modal-backdrop" id="modal-add-field-officer">
+        <div class="modal-content" style="max-width: 560px;">
+            <div class="modal-header">
+                <h3>👮 Add New Field Officer</h3>
+                <button type="button" class="modal-close-btn" onclick="closeModals()">✕</button>
+            </div>
+            <form id="add-field-officer-form" onsubmit="handleAddFieldOfficerSubmit(event)">
+                <div class="modal-body">
+                    <p style="font-size: 12.5px; color: var(--text-muted); margin-bottom: 14px;">
+                        Provision official BRO / disaster inspection credentials. Assigned jurisdiction governs field reports, ground truth verification rights, and regional radar intelligence.
+                    </p>
+
+                    <div class="form-group">
+                        <label for="add-fo-name">Full Name</label>
+                        <input type="text" id="add-fo-name" class="form-input" placeholder="e.g. Captain Rakesh Baruah" required>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                        <div class="form-group">
+                            <label for="add-fo-email">Official Access Email</label>
+                            <input type="email" id="add-fo-email" class="form-input" placeholder="officer@ner.gov.in" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="add-fo-phone">Emergency Phone / Satellite</label>
+                            <input type="tel" id="add-fo-phone" class="form-input" placeholder="+91 94351-88990" required>
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                        <div class="form-group">
+                            <label for="add-fo-password">Initial Password</label>
+                            <input type="password" id="add-fo-password" class="form-input" placeholder="Min 6 characters" minlength="6" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="add-fo-id">Officer ID (Optional)</label>
+                            <input type="text" id="add-fo-id" class="form-input" placeholder="e.g. FO-010 (Auto if blank)">
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                        <div class="form-group">
+                            <label for="add-fo-state">Assigned State</label>
+                            <select id="add-fo-state" class="form-select" required>
+                                <option value="Assam">Assam</option>
+                                <option value="Arunachal Pradesh">Arunachal Pradesh</option>
+                                <option value="Meghalaya" selected>Meghalaya</option>
+                                <option value="Manipur">Manipur</option>
+                                <option value="Mizoram">Mizoram</option>
+                                <option value="Nagaland">Nagaland</option>
+                                <option value="Tripura">Tripura</option>
+                                <option value="Sikkim">Sikkim</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="add-fo-district">District / Sector Area</label>
+                            <input type="text" id="add-fo-district" class="form-input" placeholder="e.g. East Khasi Hills Sector" value="East Khasi Hills Sector" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="add-fo-status">Duty Status</label>
+                        <select id="add-fo-status" class="form-select">
+                            <option value="ACTIVE" selected>ACTIVE — Immediate Patrol Deployment</option>
+                            <option value="STANDBY">STANDBY — Reserve Roster</option>
+                            <option value="INACTIVE">INACTIVE — Suspended Access</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="action-btn-sm" onclick="closeModals()">Cancel</button>
+                    <button type="submit" id="btn-submit-add-fo" class="btn-primary-large" style="padding: 10px 18px;">
+                        + Add Field Officer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Lightbox Modal for Photo Evidence Inspection -->
     <div class="modal-backdrop" id="modal-image-preview">
         <div class="modal-content" style="max-width: 680px;">
@@ -1164,6 +915,145 @@
             <div class="modal-footer">
                 <button type="button" class="action-btn-sm" onclick="closeModals()">Close Preview</button>
             </div>
+        </div>
+    </div>
+
+    <!-- Regional Broadcast Alerts Viewer Modal (Phase 9) -->
+    <div class="modal-backdrop" id="modal-alerts-viewer">
+        <div class="modal-content" style="max-width: 650px;">
+            <div class="modal-header">
+                <h3>🚨 Regional Hazard &amp; Safety Broadcasts</h3>
+                <button type="button" class="modal-close-btn" onclick="closeModals()">✕</button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 14px;">
+                    Active geological, meteorological, and road alerts across Northeast highways from Central Command and state authorities.
+                </p>
+                <div id="alerts-modal-list" style="display: flex; flex-direction: column; gap: 12px; max-height: 420px; overflow-y: auto;">
+                    <!-- Rendered by JS -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="action-btn-sm" onclick="closeModals()">Close</button>
+                <button type="button" class="btn-primary-large" style="padding: 8px 16px;" onclick="closeModals(); switchTab('Live-Map');">View All on GIS Map →</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alert Detail Modal -->
+    <div class="modal-backdrop" id="modal-alert-detail" style="display: none;">
+        <div class="modal-content" style="max-width: 580px;">
+            <div class="modal-header">
+                <div>
+                    <span class="panel-eyebrow" id="alert-detail-eyebrow" style="font-size: 10.5px; font-weight: 700; color: #dc2626; letter-spacing: 0.5px; text-transform: uppercase;">REGIONAL HAZARD BROADCAST</span>
+                    <h3 id="alert-detail-title" style="margin-top: 2px; font-size: 17px; color: #0f172a;">🚨 Alert Detail</h3>
+                </div>
+                <button type="button" class="modal-close-btn" id="btn-close-alert-x" onclick="closeAlertDetail()" title="Dismiss alert" aria-label="Close Alert">✕</button>
+            </div>
+            <div class="modal-body" id="alert-detail-body">
+                <!-- Dynamically populated by JS -->
+            </div>
+            <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center;">
+                <button type="button" class="action-btn-sm" id="btn-close-alert-footer" onclick="closeAlertDetail()">Close</button>
+                <button type="button" class="btn-primary-large alert-locate-btn" id="btn-alert-view-map" style="padding: 8px 16px;">
+                    🗺️ Locate on Live Map →
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Weather Hazard Simulation Modal (Phase 14) -->
+    <div class="modal-backdrop" id="modal-simulate-weather">
+        <div class="modal-content" style="max-width: 580px;">
+            <div class="modal-header">
+                <h3>⚡ Meteorological Hazard &amp; Reactivity Simulator</h3>
+                <button type="button" class="modal-close-btn" onclick="closeModals()">✕</button>
+            </div>
+            <form id="simulate-weather-form" onsubmit="handleWeatherSimulationSubmit(event)">
+                <div class="modal-body">
+                    <p style="font-size: 12.5px; color: var(--text-muted); margin-bottom: 14px;">
+                        Inject real meteorological observations by state to execute the real-time intelligence cascade:
+                        <strong>Weather Store → Accessibility Status → Risk Engine Recalculation → Highway Alert Generation → Push Notifications to Drivers &amp; Logistics</strong>.
+                    </p>
+
+                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; margin-bottom: 14px;">
+                        <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #64748b; display: block; margin-bottom: 8px;">
+                            ⚡ Quick Test Scenarios (Click to Load)
+                        </span>
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                            <button type="button" class="action-btn-sm" style="font-size: 11.5px; padding: 5px 10px; background: #fee2e2; color: #dc2626; border-color: #fca5a5;" onclick="setWeatherSimPreset(85, 'Thunderstorm / Torrential Downpour', 18, 65)">
+                                ⛈️ Torrential (85mm/h)
+                            </button>
+                            <button type="button" class="action-btn-sm" style="font-size: 11.5px; padding: 5px 10px; background: #fef3c7; color: #b45309; border-color: #fcd34d;" onclick="setWeatherSimPreset(50, 'Heavy Monsoon Rain', 22, 35)">
+                                🌧️ Heavy Rain (50mm/h)
+                            </button>
+                            <button type="button" class="action-btn-sm" style="font-size: 11.5px; padding: 5px 10px; background: #e0f2fe; color: #0369a1; border-color: #bae6fd;" onclick="setWeatherSimPreset(8, 'Dense Mountain Fog', 7, 18)">
+                                🌫️ Mountain Fog (7°C)
+                            </button>
+                            <button type="button" class="action-btn-sm" style="font-size: 11.5px; padding: 5px 10px; background: #dcfce7; color: #15803d; border-color: #86efac;" onclick="setWeatherSimPreset(0, 'Clear Skies', 26, 10)">
+                                ☀️ Clear &amp; Safe (0mm/h)
+                            </button>
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                        <div class="form-group">
+                            <label for="sim-weather-state">Target State / Sector</label>
+                            <select id="sim-weather-state" class="form-select" required>
+                                <option value="Assam">Assam</option>
+                                <option value="Meghalaya" selected>Meghalaya</option>
+                                <option value="Arunachal Pradesh">Arunachal Pradesh</option>
+                                <option value="Nagaland">Nagaland</option>
+                                <option value="Manipur">Manipur</option>
+                                <option value="Mizoram">Mizoram</option>
+                                <option value="Tripura">Tripura</option>
+                                <option value="Sikkim">Sikkim</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="sim-weather-district">District / Corridor Area</label>
+                            <input type="text" id="sim-weather-district" class="form-input" placeholder="e.g. East Khasi Hills / NH-6" value="East Khasi Hills">
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                        <div class="form-group">
+                            <label for="sim-weather-rainfall">Rainfall Rate (mm/h)</label>
+                            <input type="number" id="sim-weather-rainfall" class="form-input" min="0" max="300" step="0.5" value="75" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="sim-weather-temp">Temperature (°C)</label>
+                            <input type="number" id="sim-weather-temp" class="form-input" min="-25" max="55" step="0.5" value="19" required>
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                        <div class="form-group">
+                            <label for="sim-weather-wind">Wind Velocity (km/h)</label>
+                            <input type="number" id="sim-weather-wind" class="form-input" min="0" max="200" step="1" value="45" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="sim-weather-humidity">Relative Humidity (%)</label>
+                            <input type="number" id="sim-weather-humidity" class="form-input" min="0" max="100" step="1" value="95">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="sim-weather-condition">Meteorological Condition Description</label>
+                        <input type="text" id="sim-weather-condition" class="form-input" placeholder="e.g. Torrential Downpour / High Landslide Threat" value="Torrential Downpour / High Landslide Threat" required>
+                    </div>
+
+                    <div style="background: #fffbeb; border: 1px solid #fde68a; border-radius: 6px; padding: 10px 12px; font-size: 11.5px; color: #92400e;">
+                        ⚡ <strong>Reactivity Rule:</strong> Rainfall ≥ 45 mm/h or severe conditions automatically downgrade Accessibility Status to <em>PARTIALLY AFFECTED</em> or <em>BLOCKED</em>, escalate Route Risks to <em>HIGH/CRITICAL</em>, generate a corridor <em>Alert</em>, and push notifications to all fleet operators traversing this state.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="action-btn-sm" onclick="closeModals()">Cancel</button>
+                    <button type="submit" id="btn-submit-weather-sim" class="btn-primary-large" style="padding: 10px 20px;">
+                        🚀 Trigger Meteorological Cascade
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -1244,16 +1134,119 @@
         </div>
     </div>
 
+    <!-- Create Shipment Modal (Phase 10) -->
+    <div class="modal" id="modal-create-shipment" style="display: none;">
+        <div class="modal-box" style="max-width: 600px; max-height: 90vh; overflow-y: auto;">
+            <div class="modal-header">
+                <h3>🚚 Create New Consignment / Shipment</h3>
+                <button type="button" class="modal-close-btn" onclick="closeModals()">✕</button>
+            </div>
+            <form id="create-shipment-form" onsubmit="handleCreateShipmentSubmit(event)">
+                <div class="modal-body">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                        <div class="form-group">
+                            <label for="shp-origin">Origin Logistics Hub</label>
+                            <select id="shp-origin" class="form-select" required>
+                                <option value="Guwahati Central Hub" selected>Guwahati Central Hub (Assam)</option>
+                                <option value="Shillong Mountain Depot">Shillong Mountain Depot (Meghalaya)</option>
+                                <option value="Silchar Valley Hub">Silchar Valley Hub (Assam)</option>
+                                <option value="Dimapur Rail Freight Hub">Dimapur Rail Freight Hub (Nagaland)</option>
+                                <option value="Agartala Multi-Modal Complex">Agartala Complex (Tripura)</option>
+                                <option value="Siliguri Corridor Entry">Siliguri Corridor Entry (WB/NER)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="shp-destination">Destination Hub</label>
+                            <select id="shp-destination" class="form-select" required>
+                                <option value="Shillong Civil Hospital">Shillong Civil Hospital (Meghalaya)</option>
+                                <option value="Imphal Logistics Center" selected>Imphal Logistics Center (Manipur)</option>
+                                <option value="Aizawl Freight Terminal">Aizawl Freight Terminal (Mizoram)</option>
+                                <option value="Itanagar Northern Base">Itanagar Northern Base (Arunachal)</option>
+                                <option value="Gangtok Valley Depot">Gangtok Valley Depot (Sikkim)</option>
+                                <option value="Kohima Staging Depot">Kohima Staging Depot (Nagaland)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 12px;">
+                        <div class="form-group">
+                            <label for="shp-cargo">Cargo Description</label>
+                            <input type="text" id="shp-cargo" class="form-input" placeholder="e.g. Essential Medical Vaccines" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="shp-weight">Weight (kg)</label>
+                            <input type="number" id="shp-weight" class="form-input" placeholder="e.g. 3500" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="shp-priority">Priority</label>
+                            <select id="shp-priority" class="form-select">
+                                <option value="NORMAL" selected>Normal</option>
+                                <option value="HIGH">High</option>
+                                <option value="URGENT">Urgent</option>
+                                <option value="LOW">Low</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                        <div class="form-group">
+                            <label for="shp-driver">Assign Certified Driver</label>
+                            <select id="shp-driver" class="form-select" required>
+                                <option value="">Loading available drivers...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="shp-vehicle">Assign Vehicle / Truck</label>
+                            <select id="shp-vehicle" class="form-select" required>
+                                <option value="">Loading commercial fleet...</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                        <div class="form-group">
+                            <label for="shp-route">Arterial Highway Corridor</label>
+                            <select id="shp-route" class="form-select">
+                                <option value="">Loading arterial routes...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="shp-eta">Estimated Window / ETA</label>
+                            <input type="text" id="shp-eta" class="form-input" placeholder="e.g. 4h 30m / Today 06:00 PM" value="4h 30m">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="shp-notes">Mountain Dispatch Notes</label>
+                        <textarea id="shp-notes" class="form-input" rows="2" placeholder="Cold-chain parameters, dangerous terrain bypass notes..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="action-btn-sm" onclick="closeModals()">Cancel</button>
+                    <button type="submit" id="btn-submit-shipment" class="btn-primary-large" style="padding: 10px 18px;">
+                        🚀 Dispatch Shipment <span>→</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Live Toast Container -->
     <div class="toast-container" id="toast-container"></div>
 
-    <!-- Leaflet.js Script -->
+    <!-- Leaflet.js Script & MarkerCluster Plugin -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+
+    <!-- NEXTRA Auth & Session Modules (load first) -->
+    <script src="data/demo-users.js"></script>
+    <script src="js/session.js"></script>
 
     <!-- NEXTRA Role-Based Enterprise Architecture Modules -->
     <script src="js/permissions.js"></script>
     <script src="js/data.js"></script>
     <script src="js/api.js"></script>
+    <script src="js/offline.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/navigation.js"></script>
     <script src="js/dashboard.js"></script>
@@ -1261,8 +1254,9 @@
     <script src="js/logistics.js"></script>
     <script src="js/driver.js"></script>
     <script src="js/admin.js"></script>
+    <script src="js/risk.js"></script>
     <script src="js/map.js"></script>
-    <script src="js/main.js"></script>
+    <script src="js/main.js?phase17=20260922"></script>
 
 </body>
 </html>
